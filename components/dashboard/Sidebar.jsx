@@ -1,3 +1,4 @@
+'use client';
 import {
   BaggageClaim,
   Cable,
@@ -5,6 +6,7 @@ import {
   Files,
   FolderKanban,
   Home,
+  PlusCircle,
   ShoppingBag,
   ShoppingBasket,
   Signal,
@@ -12,7 +14,62 @@ import {
 import Link from 'next/link';
 import React from 'react';
 
+import SidebarDropdownLink from './SidebarDropdownLink';
+
 export default function Sidebar() {
+  const inventoryLinks = [
+    {
+      title: 'Items',
+      href: '/dashboard/inventory',
+    },
+    {
+      title: 'Item Groups',
+      href: '/dashboard/inventory',
+    },
+    {
+      title: 'Inventory Adjustments',
+      href: '',
+    },
+  ];
+
+  const salesLink = [
+    {
+      title: 'Customers',
+      href: '',
+    },
+    {
+      title: 'Sales Orders',
+      href: '',
+    },
+    {
+      title: 'Packages',
+      href: '',
+    },
+    {
+      title: 'Shipments',
+      href: '',
+    },
+    {
+      title: 'Invoices',
+      href: '',
+    },
+    {
+      title: 'Sales Receipts',
+      href: '',
+    },
+    {
+      title: 'Payment Received',
+      href: '',
+    },
+    {
+      title: 'Sales Returns',
+      href: '',
+    },
+    {
+      title: 'Credit Notes',
+      href: '',
+    },
+  ];
   return (
     <div className="w-64 min-h-screen bg-slate-800 text-slate-50 justify-between fixed">
       {/* TOP PART */}
@@ -37,14 +94,18 @@ export default function Sidebar() {
             <Home className="w-4 h-4" />
             <span>Home</span>
           </Link>
-          <button className="p-2 flex items-center space-x-2">
-            <BaggageClaim className="w-4 h-4" />
-            <span>Inventory</span>
-          </button>
-          <button className="p-2 flex items-center space-x-2">
-            <ShoppingBag className="w-4 h-4" />
-            <span>Assigned</span>
-          </button>
+          <SidebarDropdownLink
+            title="Inventory"
+            items={inventoryLinks}
+            icon={BaggageClaim}
+          />
+
+          <SidebarDropdownLink
+            title="Sales"
+            items={salesLink}
+            icon={ShoppingBasket}
+          />
+
           <button className="p-2 flex items-center space-x-2">
             <ShoppingBasket className="w-4 h-4" />
             <span>Purchases</span>
