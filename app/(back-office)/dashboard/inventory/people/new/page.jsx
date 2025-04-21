@@ -1,0 +1,163 @@
+'use client';
+import FormHeader from '@/components/dashboard/FormHeader';
+import SelectInput from '@/components/FormInputs/SelectInput';
+import SubmitButton from '@/components/FormInputs/SubmitButton';
+import TextAreaInput from '@/components/FormInputs/TextAreaInput';
+import TextInput from '@/components/FormInputs/TextInput';
+import { makePostRequest, makePutRequest } from '@/lib/apiRequest';
+import { Plus, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import toast from 'react-hot-toast';
+
+export default function NewPeople({ initialData = {}, isUpdate = false }) {
+  const router = useRouter();
+  const selectOptions = [
+    {
+      title: 'Expat',
+      id: 'expat',
+    },
+    {
+      title: 'National',
+      id: 'national',
+    },
+    {
+      title: 'Contractor',
+      id: 'contractor',
+    },
+    {
+      title: 'Intern',
+      id: 'intern',
+    },
+    {
+      title: 'National Service',
+      id: 'national_service',
+    },
+  ];
+
+  const departments = [
+    {
+      title: 'HR & T',
+      id: 'hr&t',
+    },
+    {
+      title: 'Technical',
+      id: 'technical',
+    },
+    {
+      title: 'HSE',
+      id: 'hse',
+    },
+    {
+      title: 'Commercial and Business Development',
+      id: 'cbd',
+    },
+    {
+      title: 'Legal',
+      id: 'legal',
+    },
+    {
+      title: 'Local Content',
+      id: 'lc',
+    },
+    {
+      title: 'Procurement',
+      id: 'procurement',
+    },
+    {
+      title: 'Finance',
+      id: 'finance',
+    },
+  ];
+  const {
+    handleSubmit,
+    register,
+    formState: { errors },
+    watch,
+    reset,
+  } = useForm({
+    defaultValues: initialData,
+  });
+
+  const [loading, setLoading] = useState(false);
+
+  function redirect() {
+    router.push('/dashboard/inventory/people');
+  }
+
+  async function onSubmit(data) {
+    if (isUpdate) {
+      setLoading(true);
+      const baseUrl = 'http://localhost:3000';
+      makePutRequest(
+        setLoading,
+        `${baseUrl}/api/people/${initialData.id}`,
+        data,
+        'People',
+        redirect,
+        reset
+      );
+    } else {
+      setLoading(true);
+      const baseUrl = 'http://localhost:3000';
+      makePostRequest(
+        setLoading,
+        `${baseUrl}/api/people`,
+        data,
+        'People',
+        reset
+      );
+    }
+  }
+  return (
+    <div>
+      {/* HEAdER */}
+      <FormHeader
+        title={isUpdate ? 'Update Personnel' : 'New Personnel'}
+        href="/dashboard/inventory/people"
+      />
+      {/* FORM */}
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="w-full max-w-4xl p-4 bg-white border border-gray-200 rounded-lg shadow sm:p-6 md:p-8 dark:bg-gray-800 dark:border-gray-700 mx-auto my-3"
+      >
+        <div className="grid gap-4 sm:grid-cols-2 sm:gap-6">
+          <SelectInput
+            register={register}
+            className="w-full"
+            name="topology"
+            label="Select person topology"
+            options={selectOptions}
+          />
+          <TextInput
+            label="Person Name"
+            name="title"
+            register={register}
+            errors={errors}
+            className="w-full"
+          />
+
+          <TextInput
+            label="Person Department"
+            name="department"
+            register={register}
+            errors={errors}
+            className="w-full"
+          />
+
+          <TextAreaInput
+            label="Person Area of Work"
+            name="aow"
+            register={register}
+            errors={errors}
+          />
+        </div>
+        <SubmitButton
+          isLoading={loading}
+          title={isUpdate ? 'Update' : 'New Personnel'}
+        />
+      </form>
+    </div>
+  );
+}

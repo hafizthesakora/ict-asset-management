@@ -1,0 +1,82 @@
+'use client';
+import FormHeader from '@/components/dashboard/FormHeader';
+import SubmitButton from '@/components/FormInputs/SubmitButton';
+import TextAreaInput from '@/components/FormInputs/TextAreaInput';
+import TextInput from '@/components/FormInputs/TextInput';
+import { makePostRequest, makePutRequest } from '@/lib/apiRequest';
+import { Plus, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import toast from 'react-hot-toast';
+
+export default function NewBrand({ initialData = {}, isUpdate = false }) {
+  const router = useRouter();
+  const {
+    handleSubmit,
+    register,
+    formState: { errors },
+    watch,
+    reset,
+  } = useForm({
+    defaultValues: initialData,
+  });
+
+  const [loading, setLoading] = useState(false);
+
+  function redirect() {
+    router.push('/dashboard/inventory/brands');
+  }
+
+  async function onSubmit(data) {
+    if (isUpdate) {
+      setLoading(true);
+      const baseUrl = 'http://localhost:3000';
+      makePutRequest(
+        setLoading,
+        `${baseUrl}/api/brands/${initialData.id}`,
+        data,
+        'Brand',
+        redirect,
+        reset
+      );
+    } else {
+      setLoading(true);
+      const baseUrl = 'http://localhost:3000';
+      makePostRequest(
+        setLoading,
+        `${baseUrl}/api/brands`,
+        data,
+        'Brand',
+        reset
+      );
+    }
+  }
+  return (
+    <div>
+      {/* HEAdER */}
+      <FormHeader
+        title={isUpdate ? 'Update Brand' : 'New Brand'}
+        href="/dashboard/inventory/brands"
+      />
+      {/* FORM */}
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="w-full max-w-4xl p-4 bg-white border border-gray-200 rounded-lg shadow sm:p-6 md:p-8 dark:bg-gray-800 dark:border-gray-700 mx-auto my-3"
+      >
+        <div className="grid gap-4 sm:grid-cols-2 sm:gap-6">
+          <TextInput
+            label="Brand Title"
+            name="title"
+            register={register}
+            errors={errors}
+          />
+        </div>
+        <SubmitButton
+          isLoading={loading}
+          title={isUpdate ? 'Update' : 'New Brand'}
+        />
+      </form>
+    </div>
+  );
+}

@@ -5,9 +5,14 @@ import {
   Boxes,
   Component,
   Computer,
+  Diff,
+  Factory,
   Monitor,
+  PersonStanding,
   ScrollText,
   Shirt,
+  Slack,
+  Warehouse,
 } from 'lucide-react';
 import Link from 'next/link';
 import React from 'react';
@@ -15,42 +20,74 @@ import React from 'react';
 export default function Inventory() {
   const optionCards = [
     {
-      title: 'Item Groups',
-      description: 'Create groups of items',
-      link: '/new',
-      linkTitle: 'New Item Group',
-      enabled: true,
-      icon: Boxes,
-    },
-    {
       title: 'Items',
-      description: 'Create standalone items or products',
-      link: '/new',
+      description: 'Manage items in the inventory',
+      link: '/dashboard/inventory/items/new',
       linkTitle: 'New Item',
       enabled: true,
       icon: Monitor,
     },
     {
-      title: 'Composite Items',
-      description: 'Bundle different items together',
-      link: '/new',
-      linkTitle: 'New Composite Item',
-      enabled: false,
+      title: 'Categories',
+      description: 'Categories of items',
+      link: '/dashboard/inventory/categories/new',
+      linkTitle: 'New Categories',
+      enabled: true,
+      icon: Boxes,
+    },
+    {
+      title: 'Brands',
+      description: 'Brands of items',
+      link: '/dashboard/inventory/brands/new',
+      linkTitle: 'New Brand',
+      enabled: true,
+      icon: Slack,
+    },
+    {
+      title: 'Warehouse',
+      description: 'Store items in different locations',
+      link: '/dashboard/inventory/warehouse/new',
+      linkTitle: 'New Warehouse',
+      enabled: true,
+      icon: Warehouse,
+    },
+    {
+      title: 'Units',
+      description: 'Unit of measurement for items',
+      link: '/dashboard/inventory/units/new',
+      linkTitle: 'New Unit',
+      enabled: true,
       icon: Component,
     },
     {
-      title: 'Price List',
-      description: 'Price list for items',
-      link: '/new',
-      linkTitle: 'New Item',
-      enabled: false,
-      icon: ScrollText,
+      title: 'Asset Assignments',
+      description: 'Assign items to employees',
+      link: '/dashboard/inventory/adjustments/new',
+      linkTitle: 'New Asset Assignment',
+      enabled: true,
+      icon: Diff,
+    },
+    {
+      title: 'Suppliers',
+      description: 'Manage suppliers of items',
+      link: '/dashboard/inventory/suppliers/new',
+      linkTitle: 'New Supplier',
+      enabled: true,
+      icon: Factory,
+    },
+    {
+      title: 'People',
+      description: 'Manage people in the inventory',
+      link: '/dashboard/inventory/people/new',
+      linkTitle: 'New Personnel',
+      enabled: true,
+      icon: PersonStanding,
     },
   ];
   return (
     <div>
-      <FixedHeader newLink="/dashboard/inventory/items/new" />
-      <div className="grid grid-cols-1 lg:grid-cols-2 py-8 px-16 gap-6">
+      <FixedHeader title="All Items" newLink="/dashboard/inventory/items/new" />
+      <div className="grid grid-cols-1 lg:grid-cols-3 md:grid-cols-2 py-8 px-16 gap-6">
         {optionCards.map((option, index) => (
           <OptionCard key={index} optionData={option} />
         ))}
