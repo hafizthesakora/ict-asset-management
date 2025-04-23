@@ -23,6 +23,21 @@ export default function NewWarehouse({ initialData = {}, isUpdate = false }) {
       id: 'branch',
     },
   ];
+
+  const selectLocation = [
+    {
+      title: 'Accra Office',
+      id: 'accra-headoffice',
+    },
+    {
+      title: 'ORF Sanzule',
+      id: 'orf-sanzule',
+    },
+    {
+      title: 'Takoradi Office',
+      id: 'takoradi-office',
+    },
+  ];
   const {
     handleSubmit,
     register,
@@ -91,12 +106,12 @@ export default function NewWarehouse({ initialData = {}, isUpdate = false }) {
             className="w-full"
           />
 
-          <TextInput
-            label="Warehouse Location"
-            name="location"
+          <SelectInput
             register={register}
-            errors={errors}
             className="w-full"
+            name="location"
+            label="Warehouse Location"
+            options={selectLocation}
           />
 
           <TextAreaInput

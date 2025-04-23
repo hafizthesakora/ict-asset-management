@@ -1,19 +1,49 @@
-import { CheckCircle2 } from 'lucide-react';
-import Link from 'next/link';
-import React from 'react';
+'use client';
 
-export default function SalesActivityCard({ item }) {
+import Link from 'next/link';
+import React, { useState } from 'react';
+import SummaryPopup from './SummaryPopup';
+
+export default function SalesActivityCard({ item, allData }) {
+  const [showSummary, setShowSummary] = useState(false);
+
   return (
-    <Link
-      href={item.href}
-      className="shadow rounded-lg border border-slate-200 hover:border-blue-400 bg-white px-3 py-4 cursor-pointer flex items-center flex-col gap-3 transition-all duration-300"
-    >
-      <h4 className={`font-semibold text-3xl ${item.color}`}>{item.number}</h4>
-      {/* <small className="text-slate-500">{item.unit}</small> */}
-      <div className="flex items-center space-x-2 text-slate-500">
-        <CheckCircle2 className="w-4 h-4" />
-        <span className="uppercase text-xs">{item.title}</span>
+    <>
+      <div
+        className="bg-white rounded-md p-4 shadow-sm hover:shadow-md transition-all cursor-pointer"
+        onClick={() => setShowSummary(true)}
+      >
+        <div className="flex justify-between items-start">
+          <div>
+            <h3 className={`text-lg font-medium ${item.color}`}>
+              {item.title}
+            </h3>
+            {/* <p className="text-sm text-gray-500">{item.unit}</p> */}
+          </div>
+          <div className="text-2xl font-bold">{item.number}</div>
+        </div>
+        <div className="mt-4 text-sm">
+          <Link
+            href={item.href}
+            className="text-blue-600 hover:underline"
+            onClick={(e) => e.stopPropagation()}
+          >
+            View Details
+          </Link>
+        </div>
       </div>
-    </Link>
+
+      {showSummary && (
+        <SummaryPopup
+          title={item.title}
+          data={item.data}
+          items={allData.items}
+          categories={allData.categories}
+          warehouses={allData.warehouses}
+          suppliers={allData.suppliers}
+          onClose={() => setShowSummary(false)}
+        />
+      )}
+    </>
   );
 }

@@ -60,7 +60,7 @@ export async function DELETE(request) {
         id,
       },
       include: {
-        item: true,
+        items: true,
       },
     });
     return NextResponse.json(deleteWarehouse);

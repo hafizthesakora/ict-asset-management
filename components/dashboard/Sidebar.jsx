@@ -37,7 +37,7 @@ export default function Sidebar({ showSidebar, setShowSidebar }) {
       href: '/dashboard/inventory/brands',
     },
     {
-      title: 'Units',
+      title: 'Assets Class',
       href: '/dashboard/inventory/units',
     },
     {

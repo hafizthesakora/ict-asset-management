@@ -82,7 +82,7 @@ model Purchase {
 
 model AddStockAdjustment {
   id String @id @default(auto()) @map("_id") @db.ObjectId
-  referenceNumber     String
+  referenceNumber     String?
   addStockQty      Int
   notes   String?
   receivingWarehouseId String 
@@ -96,7 +96,7 @@ model AddStockAdjustment {
 
 model TransferStockAdjustment {
   id String @id @default(auto()) @map("_id") @db.ObjectId
-  referenceNumber     String
+  referenceNumber     String?
   transferStockQty      Int
   notes   String?
   givingWarehouseId String 
@@ -117,7 +117,7 @@ model Item {
   categoryId    String @db.ObjectId
   sku           String    @unique
   barcode       String?
-  quantity      Int
+  quantity      Int?
   unit          Unit      @relation(fields: [unitId], references: [id])
   unitId        String @db.ObjectId
   brand         Brand     @relation(fields: [brandId], references: [id], onDelete: Cascade)
@@ -129,7 +129,7 @@ model Item {
   warehouse         Warehouse     @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
   warehouseId       String @db.ObjectId
   reOrderPoint  Int?
-  imageUrl        String
+  imageUrl        String?
   weight        Float?
   dimensions    String?
   taxRate       Float?

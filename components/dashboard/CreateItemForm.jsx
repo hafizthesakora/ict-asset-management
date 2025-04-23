@@ -88,34 +88,35 @@ export default function CreateItemForm({
         />
 
         <TextInput
-          label="Item SKU"
+          label="Item Serial Number"
           name="sku"
           register={register}
           errors={errors}
           className="w-full"
         />
 
-        <TextInput
-          label="Item Barcode"
+        {/* <TextInput
+          label="Item Serial Number"
           name="barcode"
           register={register}
           errors={errors}
           className="w-full"
-        />
+        /> */}
 
-        <TextInput
+        {/* <TextInput
           label="Quantity"
+          type="number"
           name="qty"
           register={register}
           errors={errors}
           className="w-full"
-        />
+        /> */}
 
         <SelectInput
           register={register}
           className="w-full"
           name="unitId"
-          label="Select the item unit"
+          label="Select the Asset Class"
           options={units}
         />
 
@@ -128,7 +129,7 @@ export default function CreateItemForm({
         />
 
         <TextInput
-          label="Serial Number"
+          label="Buying Price"
           name="buyingPrice"
           register={register}
           type="number"
@@ -138,11 +139,10 @@ export default function CreateItemForm({
         />
 
         <TextInput
-          label="Model Number"
+          label="Model Type"
           name="sellingPrice"
           register={register}
           errors={errors}
-          type="number"
           className="w-full"
           isRequired={false}
         />
@@ -155,7 +155,7 @@ export default function CreateItemForm({
           options={suppliers}
         />
 
-        <TextInput
+        {/* <TextInput
           label="Re-Order Point"
           name="reOrderPoint"
           register={register}
@@ -163,7 +163,7 @@ export default function CreateItemForm({
           errors={errors}
           className="w-full"
           isRequired={false}
-        />
+        /> */}
 
         <SelectInput
           register={register}
@@ -174,16 +174,15 @@ export default function CreateItemForm({
         />
 
         <TextInput
-          label="Item Weight in Kg"
+          label="Call Off Number"
           name="weight"
           register={register}
-          type="number"
           errors={errors}
           className="w-full"
           isRequired={false}
         />
 
-        <TextInput
+        {/* <TextInput
           label="Item Dimensions in cm (20 x 30)"
           name="dimensions"
           register={register}
@@ -200,12 +199,13 @@ export default function CreateItemForm({
           errors={errors}
           className="w-full"
           isRequired={false}
-        />
+        /> */}
 
-        <TextAreaInput
+        <TextInput
           label="Item Description"
           name="description"
           register={register}
+          className="w-full"
           errors={errors}
         />
 
@@ -216,12 +216,12 @@ export default function CreateItemForm({
           errors={errors}
         />
         {/* Upload thing */}
-        <ImageInput
+        {/* <ImageInput
           label="Item Image"
           imageUrl={imageUrl}
           setImageUrl={setImageUrl}
           endpoint="imageUploader"
-        />
+        /> */}
       </div>
       <SubmitButton
         isLoading={loading}

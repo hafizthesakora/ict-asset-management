@@ -25,7 +25,7 @@ export default function SelectInput({
           {options.map((option, i) => {
             return (
               <option key={i} value={option.id}>
-                {option.title}
+                {option.sku ? option.sku : option.title}
               </option>
             );
           })}

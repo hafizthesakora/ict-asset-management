@@ -13,8 +13,7 @@ export async function POST(request) {
 
     //Current stock of the warehouse
     const currentWarehouseStock = warehouse.stockQty;
-    const newStockQty =
-      parseInt(currentWarehouseStock) + parseInt(itemData.qty);
+    const newStockQty = parseInt(currentWarehouseStock) + parseInt(1);
 
     //Update the stock on the warehouse
     const updatedWarehouse = await db.warehouse.update({
@@ -28,24 +27,24 @@ export async function POST(request) {
 
     const item = await db.item.create({
       data: {
-        title: itemData.title,
-        description: itemData.description,
-        categoryId: itemData.categoryId,
-        sku: itemData.sku,
-        barcode: itemData.barcode,
-        quantity: parseInt(itemData.qty),
-        unitId: itemData.unitId,
-        brandId: itemData.brandId,
-        supplierId: itemData.supplierId,
-        reOrderPoint: parseInt(itemData.reOrderPoint),
-        warehouseId: itemData.warehouseId,
-        imageUrl: itemData.imageUrl,
-        weight: parseFloat(itemData.weight),
-        dimensions: itemData.dimensions,
-        taxRate: parseFloat(itemData.taxRate),
-        notes: itemData.notes,
-        buyingPrice: parseFloat(itemData.buyingPrice),
-        sellingPrice: parseFloat(itemData.sellingPrice),
+        title: itemData?.title,
+        description: itemData?.description,
+        categoryId: itemData?.categoryId,
+        sku: itemData?.sku,
+        barcode: itemData?.barcode,
+        quantity: parseInt(1),
+        unitId: itemData?.unitId,
+        brandId: itemData?.brandId,
+        supplierId: itemData?.supplierId,
+        reOrderPoint: parseInt(itemData?.reOrderPoint),
+        warehouseId: itemData?.warehouseId,
+        imageUrl: itemData?.imageUrl,
+        weight: parseFloat(itemData?.weight),
+        dimensions: itemData?.dimensions,
+        taxRate: parseFloat(itemData?.taxRate),
+        notes: itemData?.notes,
+        buyingPrice: parseFloat(itemData?.buyingPrice),
+        sellingPrice: parseFloat(itemData?.sellingPrice),
       },
     });
     return NextResponse.json(item);
@@ -97,7 +96,6 @@ export async function DELETE(request) {
     });
     return NextResponse.json(deleteItem);
   } catch (error) {
-    console.log(error);
     return NextResponse.json(
       {
         error,

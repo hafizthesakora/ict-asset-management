@@ -52,10 +52,10 @@ export default function Inventory() {
       icon: Warehouse,
     },
     {
-      title: 'Units',
-      description: 'Unit of measurement for items',
+      title: 'Asset Class',
+      description: 'Class of items',
       link: '/dashboard/inventory/units/new',
-      linkTitle: 'New Unit',
+      linkTitle: 'New Class',
       enabled: true,
       icon: Component,
     },

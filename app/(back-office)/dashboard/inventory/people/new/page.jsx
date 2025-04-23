@@ -69,6 +69,29 @@ export default function NewPeople({ initialData = {}, isUpdate = false }) {
       title: 'Finance',
       id: 'finance',
     },
+    {
+      title: 'MD',
+      id: 'md',
+    },
+    {
+      title: 'Exploration',
+      id: 'exploration',
+    },
+  ];
+
+  const selectLocation = [
+    {
+      title: 'Accra Office',
+      id: 'accra-headoffice',
+    },
+    {
+      title: 'ORF Sanzule',
+      id: 'orf-sanzule',
+    },
+    {
+      title: 'Takoradi Office',
+      id: 'takoradi-office',
+    },
   ];
   const {
     handleSubmit,
@@ -138,19 +161,20 @@ export default function NewPeople({ initialData = {}, isUpdate = false }) {
             className="w-full"
           />
 
-          <TextInput
-            label="Person Department"
-            name="department"
+          <SelectInput
             register={register}
-            errors={errors}
             className="w-full"
+            name="department"
+            label="Person Department"
+            options={departments}
           />
 
-          <TextAreaInput
-            label="Person Area of Work"
-            name="aow"
+          <SelectInput
             register={register}
-            errors={errors}
+            className="w-full"
+            name="aow"
+            label="Person Area of Work"
+            options={selectLocation}
           />
         </div>
         <SubmitButton

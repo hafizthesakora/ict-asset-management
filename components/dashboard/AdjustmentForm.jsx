@@ -18,7 +18,7 @@ export default function AdjustmentForm({ items, warehouses, people }) {
       form: 'add',
     },
     {
-      title: 'Giving Asset',
+      title: 'Assignment',
       icon: Minus,
       form: 'transfer',
     },

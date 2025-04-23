@@ -6,14 +6,7 @@ import React from 'react';
 
 export default async function Items() {
   const items = await getData('items');
-  const columns = [
-    'imageUrl',
-    'title',
-    'category.title',
-    'warehouse.title',
-    'quantity',
-    'createdAt',
-  ];
+  const columns = ['title', 'category.title', 'warehouse.title', 'createdAt'];
   return (
     <div>
       {/* HEAdER */}

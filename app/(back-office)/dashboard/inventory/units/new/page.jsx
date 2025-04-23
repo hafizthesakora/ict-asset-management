@@ -50,7 +50,7 @@ export default function NewUnit({ initialData = {}, isUpdate = false }) {
     <div>
       {/* HEAdER */}
       <FormHeader
-        title={isUpdate ? 'Update Unit' : 'New Unit'}
+        title={isUpdate ? 'Update Class' : 'New Class'}
         href="/dashboard/inventory/units"
       />
       {/* FORM */}
@@ -60,7 +60,7 @@ export default function NewUnit({ initialData = {}, isUpdate = false }) {
       >
         <div className="grid gap-4 sm:grid-cols-2 sm:gap-6">
           <TextInput
-            label="Unit Title"
+            label="Class Title"
             name="title"
             register={register}
             errors={errors}
@@ -68,7 +68,7 @@ export default function NewUnit({ initialData = {}, isUpdate = false }) {
           />
 
           <TextInput
-            label="Unit Abbreviation"
+            label="Class Description"
             name="abbreviation"
             register={register}
             errors={errors}
@@ -77,7 +77,7 @@ export default function NewUnit({ initialData = {}, isUpdate = false }) {
         </div>
         <SubmitButton
           isLoading={loading}
-          title={isUpdate ? 'Update' : 'New Unit'}
+          title={isUpdate ? 'Update' : 'New Class'}
         />
       </form>
     </div>
