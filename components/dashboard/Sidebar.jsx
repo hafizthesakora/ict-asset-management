@@ -114,7 +114,7 @@ export default function Sidebar({ showSidebar, setShowSidebar }) {
             className="bg-slate-950 py-4 px-2 flex space-x-2 items-center w-full"
           >
             <FolderKanban />
-            <span className="text-2xl font-semibold">Inventory</span>
+            <span className="text-2xl font-semibold">egh asset</span>
           </Link>
           <button
             className="bg-slate-950 px-2 py-3 lg:hidden"
