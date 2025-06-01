@@ -169,7 +169,7 @@ export default function Sidebar({ showSidebar, setShowSidebar }) {
                 showSidebar ? '' : 'rotate-180'
               }`}
             />
-            <span className="text-sm font-medium">Collapse</span>
+            <span className="text-sm font-medium">Eni Ghana ICT Team</span>
           </button>
         </footer>
       </div>

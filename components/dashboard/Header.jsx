@@ -85,11 +85,18 @@ export default function Header({ setShowSidebar }) {
             className="p-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 
                            transition-all duration-200 group relative"
           >
-            <History
+            {/* <History
               className="w-5 h-5 text-gray-600 dark:text-gray-400 
                                group-hover:text-blue-600 dark:group-hover:text-blue-400"
+            /> */}
+            <Image
+              src="/logo1.svg"
+              width={100}
+              height={100}
+              alt="logo"
+              className="mx-auto"
             />
-            <span className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full"></span>
+            {/* <span className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full"></span> */}
           </button>
 
           {/* Search Input */}
