@@ -6,7 +6,7 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 flex flex-col items-center justify-center text-white px-4">
       <div className="text-center">
         <Image
-          src="/logo.svg"
+          src="/logo1.svg"
           width={250}
           height={200}
           alt="logo"
