@@ -10,10 +10,7 @@ export default async function Units() {
   return (
     <div>
       {/* HEAdER */}
-      <FixedHeader
-        title="Asset Class"
-        newLink="/dashboard/inventory/units/new"
-      />
+      <FixedHeader title="JV Class" newLink="/dashboard/inventory/units/new" />
       {/* Table */}
       <div className="my-4 p-8">
         <DataTable data={units} columns={columns} resourceTitle="units" />
