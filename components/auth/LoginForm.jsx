@@ -114,7 +114,7 @@ export default function LoginForm() {
         </button>
       )}
 
-      <p className="text-sm font-light text-gray-500 dark:text-gray-400">
+      {/* <p className="text-sm font-light text-gray-500 dark:text-gray-400">
         Already have an account?{' '}
         <a
           href="/register"
@@ -122,7 +122,7 @@ export default function LoginForm() {
         >
           Sign Up
         </a>
-      </p>
+      </p> */}
     </form>
   );
 }

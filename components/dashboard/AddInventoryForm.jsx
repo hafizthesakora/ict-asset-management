@@ -47,14 +47,14 @@ export default function AddInventoryForm({ items, warehouses, people }) {
           errors={errors}
         /> */}
 
-        <TextInput
+        {/* <TextInput
           label="Quantity to be returned"
           name="addStockQty"
           type="number"
           register={register}
           className="w-full"
           errors={errors}
-        />
+        /> */}
         <SelectInput
           register={register}
           className="w-full"

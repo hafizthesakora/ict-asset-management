@@ -30,21 +30,22 @@ export async function POST(request) {
         title: itemData?.title,
         description: itemData?.description,
         categoryId: itemData?.categoryId,
-        sku: itemData?.sku,
+        serialNumber: itemData?.serialNumber,
         barcode: itemData?.barcode,
         quantity: parseInt(1),
         unitId: itemData?.unitId,
         brandId: itemData?.brandId,
         supplierId: itemData?.supplierId,
-        reOrderPoint: parseInt(itemData?.reOrderPoint),
+        documentNumber: itemData?.documentNumber,
+        year: parseInt(itemData.year),
         warehouseId: itemData?.warehouseId,
         imageUrl: itemData?.imageUrl,
-        weight: parseFloat(itemData?.weight),
-        dimensions: itemData?.dimensions,
-        taxRate: parseFloat(itemData?.taxRate),
+        callOff: itemData?.callOff,
+        assetTag: itemData?.assetTag,
+        eniShare: parseFloat(itemData?.eniShare),
         notes: itemData?.notes,
         buyingPrice: parseFloat(itemData?.buyingPrice),
-        sellingPrice: parseFloat(itemData?.sellingPrice),
+        model: itemData?.model,
       },
     });
     return NextResponse.json(item);
@@ -70,6 +71,9 @@ export async function GET(request) {
       include: {
         category: true,
         warehouse: true,
+        unit: true,
+        brand: true,
+        supplier: true,
       },
     });
     return NextResponse.json(items);

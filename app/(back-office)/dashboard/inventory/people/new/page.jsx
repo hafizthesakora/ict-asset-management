@@ -59,7 +59,10 @@ export default function NewPeople({ initialData = {}, isUpdate = false }) {
     },
     {
       title: 'Local Content',
-      id: 'lc',
+      id: 'local-content',
+    },
+    {
+      title: 'Procurement',
     },
     {
       title: 'Procurement',

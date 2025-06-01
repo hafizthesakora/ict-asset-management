@@ -48,6 +48,8 @@ model Warehouse {
   warehouseType String
   stockQty      Int @default(0)
   items Item[]
+  addWarehouseAdjustments AddWarehouseAdjustment[]
+  transferWarehouseAdjustments TransferWarehouseAdjustment[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -100,10 +102,40 @@ model TransferStockAdjustment {
   transferStockQty      Int
   notes   String?
   givingWarehouseId String 
+  receivingWarehouseId String?
   item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
   itemId String @db.ObjectId
   people People @relation(fields: [peopleId], references: [id], onDelete: Cascade)
   peopleId String @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AddWarehouseAdjustment {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  referenceNumber     String?
+  addStockQty      Int
+  notes   String?
+  receivingWarehouseId String 
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  itemId String @db.ObjectId
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  warehouseId String @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TransferWarehouseAdjustment {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  referenceNumber     String?
+  transferStockQty      Int
+  notes   String?
+  givingWarehouseId String 
+  receivingWarehouseId String?
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  itemId String @db.ObjectId
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  warehouseId String @db.ObjectId
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -115,27 +147,30 @@ model Item {
   description   String?
   category      Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   categoryId    String @db.ObjectId
-  sku           String    @unique
+  serialNumber           String    @unique
   barcode       String?
   quantity      Int?
+  year          Int?
   unit          Unit      @relation(fields: [unitId], references: [id])
   unitId        String @db.ObjectId
   brand         Brand     @relation(fields: [brandId], references: [id], onDelete: Cascade)
   brandId       String @db.ObjectId
-  sellingPrice     Float?
+  assetTag     String?
   buyingPrice     Float?
   supplier         Supplier     @relation(fields: [supplierId], references: [id], onDelete: Cascade)
   supplierId       String @db.ObjectId
   warehouse         Warehouse     @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
   warehouseId       String @db.ObjectId
-  reOrderPoint  Int?
+  documentNumber  String?
   imageUrl        String?
-  weight        Float?
-  dimensions    String?
-  taxRate       Float?
+  callOff        String?
+  model    String?
+  eniShare       Float?
   notes         String?
   addStockAdjustments AddStockAdjustment[]
   transferStockAdjustments TransferStockAdjustment[]
+  addWarehouseAdjustments AddWarehouseAdjustment[]
+  transferWarehouseAdjustments TransferWarehouseAdjustment[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
