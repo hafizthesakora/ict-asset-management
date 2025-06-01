@@ -28,9 +28,9 @@ export default function ItemsClient({ initialItems, columns }) {
     const rows = XLSX.utils.sheet_to_json(sheet);
 
     // 3) POST each row to your items API
-    const baseUrl = 'http://localhost:3000';
+    // const baseUrl = 'http://localhost:3000';
     for (const row of rows) {
-      await fetch(`${baseUrl}/api/items`, {
+      await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/items`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(row),

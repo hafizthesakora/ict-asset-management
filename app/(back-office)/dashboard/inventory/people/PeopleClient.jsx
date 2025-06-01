@@ -28,9 +28,9 @@ export default function PeopleClient({ initialItems, columns }) {
     const rows = XLSX.utils.sheet_to_json(sheet);
 
     // 3) POST each row to your items API
-    const baseUrl = 'http://localhost:3000';
+    // const baseUrl = 'http://localhost:3000';
     for (const row of rows) {
-      await fetch(`${baseUrl}/api/people`, {
+      await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/people`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(row),
