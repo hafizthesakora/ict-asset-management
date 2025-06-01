@@ -30,7 +30,7 @@ export default function Sidebar({ showSidebar, setShowSidebar }) {
     },
     {
       title: 'Warehouse Adjustments',
-      href: '/dashboard/inventory/adjustments',
+      href: '/dashboard/inventory/tradjustments',
     },
     {
       title: 'Categories',
@@ -50,7 +50,7 @@ export default function Sidebar({ showSidebar, setShowSidebar }) {
     },
     {
       title: 'Inventory Assignment',
-      href: '/dashboard/inventory/assignments',
+      href: '/dashboard/inventory/adjustments',
     },
     {
       title: 'Suppliers',

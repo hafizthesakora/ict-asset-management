@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   BarChart,
   Bar,
@@ -32,265 +32,198 @@ export default function InventoryAnalyticsDashboard() {
     peopleAssignments: [],
   });
 
-  // Use refs to prevent infinite loops and track component state
-  const isFetchingRef = useRef(false);
-  const isMountedRef = useRef(true);
-  const lastTimeframeRef = useRef(timeframe);
-
-  // Process raw data into analytics format
-  const processRawData = ({ categories, warehouses, suppliers, items }) => {
-    try {
-      // Process category distribution
-      const categoryDistribution = (categories || []).map((category) => {
-        const categoryItems = (items || []).filter(
-          (item) => item?.categoryId === category?.id
-        );
-        return {
-          title: category?.title || 'Unknown Category',
-          count: categoryItems.length,
-          value: categoryItems.reduce(
-            (sum, item) => sum + (item?.price || 0) * (item?.stockQty || 0),
-            0
-          ),
-        };
-      });
-
-      // Process warehouse occupancy
-      const warehouseOccupancy = (warehouses || []).map((warehouse) => {
-        const warehouseItems = (items || []).filter(
-          (item) => item?.warehouseId === warehouse?.id
-        );
-        const totalStock = warehouseItems.reduce(
-          (sum, item) => sum + (item?.stockQty || 0),
-          0
-        );
-        return {
-          title: warehouse?.title || 'Unknown Warehouse',
-          stockQty: totalStock,
-          capacity: warehouse?.capacity || 1000,
-        };
-      });
-
-      // Process top suppliers
-      const supplierStats = (suppliers || [])
-        .map((supplier) => {
-          const supplierItems = (items || []).filter(
-            (item) => item?.supplierId === supplier?.id
-          );
-          return {
-            title: supplier?.title || 'Unknown Supplier',
-            itemCount: supplierItems.length,
-            totalValue: supplierItems.reduce(
-              (sum, item) => sum + (item?.price || 0) * (item?.stockQty || 0),
-              0
-            ),
-          };
-        })
-        .sort((a, b) => b.totalValue - a.totalValue)
-        .slice(0, 10);
-
-      // Generate mock time-series data
-      const currentDate = new Date();
-      const inventoryValue = [];
-      const stockMovement = [];
-
-      for (let i = 11; i >= 0; i--) {
-        const date = new Date(
-          currentDate.getFullYear(),
-          currentDate.getMonth() - i,
-          1
-        );
-        const monthName = date.toLocaleDateString('default', {
-          month: 'short',
-          year: '2-digit',
-        });
-
-        inventoryValue.push({
-          month: monthName,
-          value: Math.floor(Math.random() * 100000) + 50000,
-        });
-
-        stockMovement.push({
-          date: monthName,
-          additions: Math.floor(Math.random() * 100) + 20,
-          transfers: Math.floor(Math.random() * 50) + 10,
-        });
-      }
-
-      // Mock people assignments
-      const totalItems = (items || []).length;
-      const peopleAssignments = [
-        { department: 'IT', count: Math.floor(totalItems * 0.3) },
-        { department: 'HR', count: Math.floor(totalItems * 0.2) },
-        { department: 'Finance', count: Math.floor(totalItems * 0.25) },
-        { department: 'Operations', count: Math.floor(totalItems * 0.25) },
-      ];
-
-      return {
-        categoryDistribution,
-        warehouseOccupancy,
-        inventoryValue,
-        stockMovement,
-        topSuppliers: supplierStats,
-        stockTransfers: stockMovement,
-        peopleAssignments,
-      };
-    } catch (err) {
-      console.error('Error processing raw data:', err);
-      throw new Error('Failed to process analytics data');
-    }
-  };
-
-  // Fetch individual endpoints with better error handling
-  const fetchIndividualEndpoints = async () => {
-    try {
-      const endpoints = [
-        '/api/categories',
-        '/api/warehouse',
-        '/api/suppliers',
-        '/api/items',
-      ];
-
-      const responses = await Promise.allSettled(
-        endpoints.map((endpoint) =>
-          fetch(endpoint).then((res) => {
-            if (!res.ok) {
-              throw new Error(`${endpoint} failed with status ${res.status}`);
-            }
-            return res.json();
-          })
-        )
-      );
-
-      // Check if any requests failed
-      const failedRequests = responses.filter(
-        (result) => result.status === 'rejected'
-      );
-      if (failedRequests.length > 0) {
-        console.error('Some API requests failed:', failedRequests);
-      }
-
-      // Extract successful results with fallbacks
-      const [categories, warehouses, suppliers, items] = responses.map(
-        (result, index) => {
-          if (result.status === 'fulfilled') {
-            return result.value;
-          } else {
-            console.error(
-              `Failed to fetch ${endpoints[index]}:`,
-              result.reason
-            );
-            return []; // Return empty array as fallback
-          }
-        }
-      );
-
-      return { categories, warehouses, suppliers, items };
-    } catch (err) {
-      console.error('Error in fetchIndividualEndpoints:', err);
-      throw new Error(`Failed to fetch data: ${err.message}`);
-    }
-  };
-
-  // Main fetch function with comprehensive error handling
-  const fetchAnalyticsData = async (currentTimeframe) => {
-    // Prevent duplicate requests and check if component is still mounted
-    if (isFetchingRef.current || !isMountedRef.current) {
-      return;
-    }
-
-    // Don't refetch if timeframe hasn't actually changed
-    if (
-      lastTimeframeRef.current === currentTimeframe &&
-      analytics.categoryDistribution.length > 0
-    ) {
-      return;
-    }
-
-    isFetchingRef.current = true;
-    lastTimeframeRef.current = currentTimeframe;
+  // Memoized fetch function to prevent infinite loops
+  const fetchAnalyticsData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
 
     try {
-      setLoading(true);
-      setError(null);
-
       // Option 1: Try the analytics endpoint first
-      try {
-        const response = await fetch(
-          `/api/analytics?timeframe=${currentTimeframe}`
-        );
+      let response = await fetch(`/api/analytics?timeframe=${timeframe}`);
 
-        if (response.ok) {
-          const data = await response.json();
-          if (isMountedRef.current) {
-            setAnalytics(data);
-            return;
-          }
-        } else if (response.status !== 404) {
-          throw new Error(
-            `Analytics API error: ${response.status} ${response.statusText}`
-          );
-        }
-      } catch (analyticsError) {
+      if (response.ok) {
+        const data = await response.json();
+        setAnalytics(data);
+      } else if (response.status === 404) {
+        // Option 2: If analytics endpoint doesn't exist, fetch individual endpoints
         console.log(
-          'Analytics endpoint not available, trying individual endpoints...',
-          analyticsError.message
+          'Analytics endpoint not found, fetching individual endpoints...'
         );
-      }
-
-      // Option 2: Fetch individual endpoints
-      const rawData = await fetchIndividualEndpoints();
-      const processedAnalytics = processRawData(rawData);
-
-      if (isMountedRef.current) {
-        setAnalytics(processedAnalytics);
+        await fetchIndividualEndpoints();
+      } else {
+        throw new Error(`Error fetching analytics: ${response.statusText}`);
       }
     } catch (err) {
       console.error('Error fetching analytics data:', err);
-      if (isMountedRef.current) {
-        setError(err.message || 'Failed to load analytics data');
+      // Fallback to individual endpoints if analytics endpoint fails
+      try {
+        await fetchIndividualEndpoints();
+      } catch (fallbackErr) {
+        console.error('Fallback fetch also failed:', fallbackErr);
+        setError(fallbackErr.message);
       }
     } finally {
-      if (isMountedRef.current) {
-        setLoading(false);
+      setLoading(false);
+    }
+  }, [timeframe]); // Only depend on timeframe
+
+  // Fetch individual endpoints and process data
+  const fetchIndividualEndpoints = async () => {
+    try {
+      const [categoriesRes, warehousesRes, suppliersRes, itemsRes] =
+        await Promise.all([
+          fetch('/api/categories'),
+          fetch('/api/warehouse'),
+          fetch('/api/suppliers'),
+          fetch('/api/items'),
+        ]);
+
+      if (
+        !categoriesRes.ok ||
+        !warehousesRes.ok ||
+        !suppliersRes.ok ||
+        !itemsRes.ok
+      ) {
+        throw new Error('One or more API endpoints failed');
       }
-      isFetchingRef.current = false;
+
+      const [categories, warehouses, suppliers, items] = await Promise.all([
+        categoriesRes.json(),
+        warehousesRes.json(),
+        suppliersRes.json(),
+        itemsRes.json(),
+      ]);
+
+      // Process the data to match expected analytics format
+      const processedAnalytics = processRawData({
+        categories,
+        warehouses,
+        suppliers,
+        items,
+      });
+
+      setAnalytics(processedAnalytics);
+    } catch (err) {
+      throw new Error(`Failed to fetch individual endpoints: ${err.message}`);
     }
   };
 
-  // Effect to fetch data when timeframe changes or on mount
-  useEffect(() => {
-    fetchAnalyticsData(timeframe);
-  }, [timeframe]);
+  // Process raw data into analytics format
+  const processRawData = ({ categories, warehouses, suppliers, items }) => {
+    // Process category distribution
+    const categoryDistribution = categories.map((category) => {
+      const categoryItems = items.filter(
+        (item) => item.categoryId === category.id
+      );
+      return {
+        title: category.title,
+        count: categoryItems.length,
+        value: categoryItems.reduce(
+          (sum, item) => sum + (item.price * item.stockQty || 0),
+          0
+        ),
+      };
+    });
 
-  // Cleanup effect to prevent memory leaks
-  useEffect(() => {
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
-
-  // Calculate totals with error handling
-  const calculateTotalItems = () => {
-    try {
-      return (analytics.categoryDistribution || []).reduce(
-        (total, cat) => total + (cat?.count || 0),
+    // Process warehouse occupancy
+    const warehouseOccupancy = warehouses.map((warehouse) => {
+      const warehouseItems = items.filter(
+        (item) => item.warehouseId === warehouse.id
+      );
+      const totalStock = warehouseItems.reduce(
+        (sum, item) => sum + (item.stockQty || 0),
         0
       );
-    } catch {
-      return 0;
+      return {
+        title: warehouse.title,
+        stockQty: totalStock,
+        capacity: warehouse.capacity || 1000, // Default capacity if not provided
+      };
+    });
+
+    // Process top suppliers
+    const supplierStats = suppliers
+      .map((supplier) => {
+        const supplierItems = items.filter(
+          (item) => item.supplierId === supplier.id
+        );
+        return {
+          title: supplier.title,
+          itemCount: supplierItems.length,
+          totalValue: supplierItems.reduce(
+            (sum, item) => sum + (item.price * item.stockQty || 0),
+            0
+          ),
+        };
+      })
+      .sort((a, b) => b.totalValue - a.totalValue)
+      .slice(0, 10);
+
+    // Generate mock time-series data (replace with real data if available)
+    const currentDate = new Date();
+    const inventoryValue = [];
+    const stockMovement = [];
+
+    for (let i = 11; i >= 0; i--) {
+      const date = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth() - i,
+        1
+      );
+      const monthName = date.toLocaleDateString('default', {
+        month: 'short',
+        year: '2-digit',
+      });
+
+      inventoryValue.push({
+        month: monthName,
+        value: Math.floor(Math.random() * 100000) + 50000,
+      });
+
+      stockMovement.push({
+        date: monthName,
+        additions: Math.floor(Math.random() * 100) + 20,
+        transfers: Math.floor(Math.random() * 50) + 10,
+      });
     }
+
+    // Mock people assignments (replace with real data if available)
+    const peopleAssignments = [
+      { department: 'IT', count: Math.floor(items.length * 0.3) },
+      { department: 'HR', count: Math.floor(items.length * 0.2) },
+      { department: 'Finance', count: Math.floor(items.length * 0.25) },
+      { department: 'Operations', count: Math.floor(items.length * 0.25) },
+    ];
+
+    return {
+      categoryDistribution,
+      warehouseOccupancy,
+      inventoryValue,
+      stockMovement,
+      topSuppliers: supplierStats,
+      stockTransfers: stockMovement, // Reuse stock movement data
+      peopleAssignments,
+    };
+  };
+
+  // Use useEffect with the memoized function
+  useEffect(() => {
+    fetchAnalyticsData();
+  }, [fetchAnalyticsData]);
+
+  // Calculate totals
+  const calculateTotalItems = () => {
+    return analytics.categoryDistribution.reduce(
+      (total, cat) => total + cat.count,
+      0
+    );
   };
 
   const calculateTotalValue = () => {
-    try {
-      return (analytics.categoryDistribution || []).reduce(
-        (total, cat) => total + (cat?.value || 0),
-        0
-      );
-    } catch {
-      return 0;
-    }
+    return analytics.categoryDistribution.reduce(
+      (total, cat) => total + cat.value,
+      0
+    );
   };
 
   const COLORS = [
@@ -314,16 +247,10 @@ export default function InventoryAnalyticsDashboard() {
 
   if (error) {
     return (
-      <div className="flex flex-col justify-center items-center h-64 bg-gray-50 p-6">
-        <div className="text-xl font-medium text-red-600 mb-4">
+      <div className="flex justify-center items-center h-64 bg-gray-50 p-6">
+        <div className="text-xl font-medium text-red-600">
           Error loading analytics: {error}
         </div>
-        <button
-          onClick={() => fetchAnalyticsData(timeframe)}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          Retry
-        </button>
       </div>
     );
   }
@@ -367,7 +294,7 @@ export default function InventoryAnalyticsDashboard() {
         <div className="bg-white p-4 rounded-lg shadow">
           <h3 className="text-gray-500 text-sm">Total Warehouses</h3>
           <p className="text-2xl font-bold">
-            {(analytics.warehouseOccupancy || []).length}
+            {analytics.warehouseOccupancy.length}
           </p>
         </div>
         <div className="bg-white p-4 rounded-lg shadow">
@@ -375,12 +302,11 @@ export default function InventoryAnalyticsDashboard() {
             Stock Transfers (Current Month)
           </h3>
           <p className="text-2xl font-bold">
-            {(analytics.stockTransfers || []).length > 0
+            {analytics.stockTransfers.length > 0
               ? analytics.stockTransfers[analytics.stockTransfers.length - 1]
-                  ?.count ||
+                  .count ||
                 analytics.stockTransfers[analytics.stockTransfers.length - 1]
-                  ?.transfers ||
-                0
+                  .transfers
               : 0}
           </p>
         </div>
@@ -391,7 +317,7 @@ export default function InventoryAnalyticsDashboard() {
         {/* Inventory by Category */}
         <div className="bg-white p-4 rounded-lg shadow">
           <h2 className="text-xl font-semibold mb-4">Inventory by Category</h2>
-          {(analytics.categoryDistribution || []).length > 0 ? (
+          {analytics.categoryDistribution.length > 0 ? (
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -435,7 +361,7 @@ export default function InventoryAnalyticsDashboard() {
         {/* Warehouse Stock Levels */}
         <div className="bg-white p-4 rounded-lg shadow">
           <h2 className="text-xl font-semibold mb-4">Warehouse Occupancy</h2>
-          {(analytics.warehouseOccupancy || []).length > 0 ? (
+          {analytics.warehouseOccupancy.length > 0 ? (
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
@@ -465,7 +391,7 @@ export default function InventoryAnalyticsDashboard() {
         {/* Inventory Value Trend */}
         <div className="bg-white p-4 rounded-lg shadow">
           <h2 className="text-xl font-semibold mb-4">Inventory Value Trend</h2>
-          {(analytics.inventoryValue || []).length > 0 ? (
+          {analytics.inventoryValue.length > 0 ? (
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
@@ -503,7 +429,7 @@ export default function InventoryAnalyticsDashboard() {
         {/* Stock Movement */}
         <div className="bg-white p-4 rounded-lg shadow">
           <h2 className="text-xl font-semibold mb-4">Stock Movement</h2>
-          {(analytics.stockMovement || []).length > 0 ? (
+          {analytics.stockMovement.length > 0 ? (
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
@@ -544,7 +470,7 @@ export default function InventoryAnalyticsDashboard() {
         {/* Top Suppliers */}
         <div className="bg-white p-4 rounded-lg shadow">
           <h2 className="text-xl font-semibold mb-4">Top Suppliers</h2>
-          {(analytics.topSuppliers || []).length > 0 ? (
+          {analytics.topSuppliers.length > 0 ? (
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
@@ -581,7 +507,7 @@ export default function InventoryAnalyticsDashboard() {
           <h2 className="text-xl font-semibold mb-4">
             Item Assignments by Department
           </h2>
-          {(analytics.peopleAssignments || []).length > 0 ? (
+          {analytics.peopleAssignments.length > 0 ? (
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>

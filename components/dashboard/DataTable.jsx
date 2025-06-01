@@ -5,7 +5,15 @@ import React, { useState, useMemo } from 'react';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import get from 'lodash.get';
-import { Pencil, Download, Search } from 'lucide-react';
+import {
+  Pencil,
+  Download,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from 'lucide-react';
 import Link from 'next/link';
 import DeleteBtn from './DeleteBtn';
 
@@ -25,25 +33,26 @@ function prepareExcelData(data, columns) {
 }
 
 export default function DataTable({ data = [], columns = [], resourceTitle }) {
-  // 1) Keep track of the search term
+  // Search state
   const [searchTerm, setSearchTerm] = useState('');
 
-  // 2) Filter `data` based on `searchTerm` (case-insensitive, across all columns)
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  // Filter data based on search term
   const filteredData = useMemo(() => {
     if (!searchTerm) return data;
 
     const lower = searchTerm.toLowerCase();
     return data.filter((item) => {
       return columns.some((col) => {
-        // use lodash.get to support nested keys
         let rawValue = get(item, col);
 
-        // if it's a date column, convert to localized string first
         if (col === 'createdAt' || col === 'updatedAt') {
           rawValue = new Date(rawValue).toLocaleDateString();
         }
 
-        // coerce to string & compare
         if (rawValue !== null && rawValue !== undefined) {
           return String(rawValue).toLowerCase().includes(lower);
         }
@@ -52,7 +61,61 @@ export default function DataTable({ data = [], columns = [], resourceTitle }) {
     });
   }, [searchTerm, data, columns]);
 
-  // 3) "Download All" logic stays the same
+  // Pagination calculations
+  const totalItems = filteredData.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentData = filteredData.slice(startIndex, endIndex);
+
+  // Reset to first page when search changes
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, itemsPerPage]);
+
+  // Pagination handlers
+  const goToPage = (page) => {
+    setCurrentPage(Math.min(Math.max(1, page), totalPages));
+  };
+
+  const goToFirstPage = () => goToPage(1);
+  const goToLastPage = () => goToPage(totalPages);
+  const goToPreviousPage = () => goToPage(currentPage - 1);
+  const goToNextPage = () => goToPage(currentPage + 1);
+
+  // Generate page numbers for pagination display
+  const getPageNumbers = () => {
+    const delta = 2; // Number of pages to show on each side of current page
+    const range = [];
+    const rangeWithDots = [];
+
+    for (
+      let i = Math.max(2, currentPage - delta);
+      i <= Math.min(totalPages - 1, currentPage + delta);
+      i++
+    ) {
+      range.push(i);
+    }
+
+    if (currentPage - delta > 2) {
+      rangeWithDots.push(1, '...');
+    } else {
+      rangeWithDots.push(1);
+    }
+
+    rangeWithDots.push(...range);
+
+    if (currentPage + delta < totalPages - 1) {
+      rangeWithDots.push('...', totalPages);
+    } else {
+      rangeWithDots.push(totalPages);
+    }
+
+    return rangeWithDots.filter(
+      (item, index, arr) => arr.indexOf(item) === index && item !== currentPage
+    );
+  };
+
   const handleDownloadExcel = async () => {
     let allData = data;
 
@@ -79,7 +142,7 @@ export default function DataTable({ data = [], columns = [], resourceTitle }) {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 shadow-xl rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <div className="bg-white dark:bg-gray-800 shadow-xl rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden w-full max-w-full">
       {/* ================= HEADER SECTION ================= */}
       <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 px-6 py-5 border-b border-gray-200 dark:border-gray-600">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -108,6 +171,30 @@ export default function DataTable({ data = [], columns = [], resourceTitle }) {
             )}
           </div>
 
+          {/* Items per page selector */}
+          <div className="flex items-center gap-2">
+            <label
+              htmlFor="itemsPerPage"
+              className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap"
+            >
+              Show:
+            </label>
+            <select
+              id="itemsPerPage"
+              value={itemsPerPage}
+              onChange={(e) => setItemsPerPage(Number(e.target.value))}
+              className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg
+                       bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
+                       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+          </div>
+
           {/* Export Button */}
           <div className="flex-shrink-0">
             <button
@@ -125,9 +212,15 @@ export default function DataTable({ data = [], columns = [], resourceTitle }) {
       </div>
 
       {/* ================= TABLE SECTION ================= */}
-      {filteredData.length > 0 ? (
-        <div className="overflow-x-auto">
-          <table className="w-full">
+      {currentData.length > 0 ? (
+        <div
+          className="overflow-x-auto"
+          style={{ maxWidth: '100%', width: '100%' }}
+        >
+          <table
+            className="table-auto"
+            style={{ minWidth: `${columns.length * 160 + 144}px` }}
+          >
             <thead>
               <tr className="bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-700 dark:to-gray-600">
                 {columns.map((col, i) => (
@@ -135,7 +228,7 @@ export default function DataTable({ data = [], columns = [], resourceTitle }) {
                     key={i}
                     className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 
                              uppercase tracking-wider border-b border-gray-200 dark:border-gray-600
-                             whitespace-nowrap"
+                             whitespace-nowrap w-40 min-w-[160px]"
                   >
                     {col
                       .replace(/([A-Z])/g, ' $1')
@@ -144,25 +237,28 @@ export default function DataTable({ data = [], columns = [], resourceTitle }) {
                 ))}
                 <th
                   className="px-6 py-4 text-right text-xs font-semibold text-gray-700 dark:text-gray-300 
-                             uppercase tracking-wider border-b border-gray-200 dark:border-gray-600"
+                             uppercase tracking-wider border-b border-gray-200 dark:border-gray-600
+                             whitespace-nowrap w-36 min-w-[144px]"
                 >
                   Actions
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-              {filteredData.map((item, i) => (
+              {currentData.map((item, i) => (
                 <tr
                   key={i}
                   className="bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-750 
                            transition-colors duration-150 ease-in-out group"
                 >
                   {columns.map((col, j) => {
-                    // Use the same logic as before to pull cell value
                     const cellValue = get(item, col);
                     if (col === 'createdAt' || col === 'updatedAt') {
                       return (
-                        <td key={j} className="px-6 py-4 whitespace-nowrap">
+                        <td
+                          key={j}
+                          className="px-6 py-4 whitespace-nowrap w-40 min-w-[160px]"
+                        >
                           <span className="text-sm text-gray-900 dark:text-gray-100 font-medium">
                             {new Date(cellValue).toLocaleDateString()}
                           </span>
@@ -170,15 +266,15 @@ export default function DataTable({ data = [], columns = [], resourceTitle }) {
                       );
                     }
                     return (
-                      <td key={j} className="px-6 py-4">
-                        <div className="text-sm text-gray-900 dark:text-gray-100 font-medium max-w-xs truncate">
+                      <td key={j} className="px-6 py-4 w-40 min-w-[160px]">
+                        <div className="text-sm text-gray-900 dark:text-gray-100 font-medium truncate">
                           {cellValue}
                         </div>
                       </td>
                     );
                   })}
 
-                  <td className="px-6 py-4 whitespace-nowrap text-right">
+                  <td className="px-6 py-4 whitespace-nowrap text-right w-36 min-w-[144px]">
                     <div className="flex items-center justify-end space-x-3">
                       {!resourceTitle.includes('adjustments/') && (
                         <Link
@@ -227,16 +323,99 @@ export default function DataTable({ data = [], columns = [], resourceTitle }) {
         </div>
       )}
 
-      {/* ================= FOOTER INFO ================= */}
-      {filteredData.length > 0 && (
-        <div className="bg-gray-50 dark:bg-gray-700 px-6 py-3 border-t border-gray-200 dark:border-gray-600">
-          <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
-            <span>
-              Showing {filteredData.length} of {data.length} records
-            </span>
-            <span className="text-xs">
-              Last updated: {new Date().toLocaleDateString()}
-            </span>
+      {/* ================= PAGINATION SECTION ================= */}
+      {totalPages > 1 && (
+        <div className="bg-gray-50 dark:bg-gray-700 px-6 py-4 border-t border-gray-200 dark:border-gray-600">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            {/* Results info */}
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              Showing {startIndex + 1} to {Math.min(endIndex, totalItems)} of{' '}
+              {totalItems} results
+              {searchTerm && ` (filtered from ${data.length} total records)`}
+            </div>
+
+            {/* Pagination controls */}
+            <div className="flex items-center space-x-1">
+              {/* First page */}
+              <button
+                onClick={goToFirstPage}
+                disabled={currentPage === 1}
+                className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 
+                         text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200
+                         hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed
+                         transition-colors duration-200"
+              >
+                <ChevronsLeft className="w-4 h-4" />
+              </button>
+
+              {/* Previous page */}
+              <button
+                onClick={goToPreviousPage}
+                disabled={currentPage === 1}
+                className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 
+                         text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200
+                         hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed
+                         transition-colors duration-200"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+
+              {/* Page numbers */}
+              <div className="flex items-center space-x-1">
+                {/* Current page */}
+                <button
+                  className="px-3 py-2 rounded-lg bg-blue-600 text-white font-medium text-sm
+                           shadow-md hover:bg-blue-700 transition-colors duration-200"
+                >
+                  {currentPage}
+                </button>
+
+                {/* Other page numbers */}
+                {getPageNumbers().map((page, index) => (
+                  <React.Fragment key={index}>
+                    {page === '...' ? (
+                      <span className="px-2 py-2 text-gray-500 dark:text-gray-400">
+                        ...
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => goToPage(page)}
+                        className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 
+                                 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm
+                                 hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-400 dark:hover:border-gray-500
+                                 transition-colors duration-200"
+                      >
+                        {page}
+                      </button>
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
+
+              {/* Next page */}
+              <button
+                onClick={goToNextPage}
+                disabled={currentPage === totalPages}
+                className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 
+                         text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200
+                         hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed
+                         transition-colors duration-200"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+
+              {/* Last page */}
+              <button
+                onClick={goToLastPage}
+                disabled={currentPage === totalPages}
+                className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 
+                         text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200
+                         hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed
+                         transition-colors duration-200"
+              >
+                <ChevronsRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
       )}

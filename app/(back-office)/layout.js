@@ -16,11 +16,11 @@ export default function Layout({ children }) {
     return <Login />;
   }
   return (
-    <div className="flex">
+    <div className="flex min-h-screen overflow-hidden">
       <Sidebar showSidebar={showSidebar} setShowSidebar={setShowSidebar} />
-      <main className="lg:ml-64 ml-0 w-full bg-slate-100 min-h-screen">
+      <main className="lg:ml-64 ml-0 w-full bg-slate-100 min-h-screen flex-1 overflow-hidden">
         <Header setShowSidebar={setShowSidebar} />
-        {children}
+        <div className="h-full overflow-auto">{children}</div>
       </main>
     </div>
   );

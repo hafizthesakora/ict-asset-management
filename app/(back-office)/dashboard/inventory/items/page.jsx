@@ -11,8 +11,11 @@ export default async function ItemsPage() {
     'assetTag',
     'documentNumber',
     'serialNumber',
+    'model',
+    'buyingPrice',
     'eniShare',
     'year',
+    'notes',
   ];
 
   return <ItemsClient initialItems={items} columns={columns} />;

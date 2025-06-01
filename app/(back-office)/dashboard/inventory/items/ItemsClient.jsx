@@ -43,27 +43,38 @@ export default function ItemsClient({ initialItems, columns }) {
   };
 
   return (
-    <div>
+    <div className="h-full flex flex-col">
       <FixedHeader title="Items" newLink="/dashboard/inventory/items/new" />
 
-      <div className="flex items-center p-4 space-x-4">
-        <input
-          type="file"
-          accept=".xlsx,.csv"
-          onChange={handleFileChange}
-          className="border rounded px-2 py-1"
-        />
-        <button
-          onClick={handleBatchUpload}
-          disabled={!file || loading}
-          className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
-        >
-          {loading ? 'Uploading…' : 'Batch Upload'}
-        </button>
+      <div className="px-8 py-4 flex-shrink-0">
+        <div className="flex items-center space-x-4">
+          <input
+            type="file"
+            accept=".xlsx,.csv"
+            onChange={handleFileChange}
+            className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 
+                     bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
+                     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                     max-w-xs"
+          />
+          <button
+            onClick={handleBatchUpload}
+            disabled={!file || loading}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg 
+                     disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200
+                     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+                     whitespace-nowrap"
+          >
+            {loading ? 'Uploading…' : 'Batch Upload'}
+          </button>
+        </div>
       </div>
 
-      <div className="my-4 p-8">
-        <DataTable data={items} columns={columns} resourceTitle="items" />
+      {/* DataTable container with proper overflow handling */}
+      <div className="flex-1 px-8 pb-8 overflow-hidden">
+        <div className="h-full overflow-auto">
+          <DataTable data={items} columns={columns} resourceTitle="items" />
+        </div>
       </div>
     </div>
   );

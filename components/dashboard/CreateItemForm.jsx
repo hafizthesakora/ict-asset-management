@@ -34,6 +34,14 @@ export default function CreateItemForm({
     defaultValues: initialData,
   });
 
+  const selectOptions = [
+    { id: 'scrapped', title: 'Scrapped' },
+    { id: 'Assigned', title: 'Assigned' },
+    { id: 'stolen', title: 'Stolen' },
+    { id: 'returned', title: 'Returned' },
+    { id: 'to be scrapped', title: 'To be Scrapped' },
+  ];
+
   // mapping JV Class → Eni Share
   const jvShareMapping = {
     Corporate: '100',
@@ -372,12 +380,20 @@ export default function CreateItemForm({
                 </div>
 
                 <div className="group">
-                  <TextAreaInput
+                  {/* <TextAreaInput
                     label="Item Notes"
                     name="notes"
                     register={register}
                     errors={errors}
                     className="transition-all duration-200 group-hover:shadow-md"
+                  /> */}
+
+                  <SelectInput
+                    register={register}
+                    className="w-full transition-all duration-200 group-hover:shadow-md"
+                    name="notes"
+                    label="Item Notes"
+                    options={selectOptions}
                   />
                 </div>
               </div>
