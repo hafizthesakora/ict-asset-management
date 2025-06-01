@@ -23,10 +23,10 @@ export default function AddInventoryForm({ items, warehouses, people }) {
   async function onSubmit(data) {
     // console.log(data);
     setLoading(true);
-    const baseUrl = 'http://localhost:3000';
+    // const baseUrl = 'http://localhost:3000';
     makePostRequest(
       setLoading,
-      `${baseUrl}/api/adjustments/add`,
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/adjustments/add`,
       data,
       'Adjustment Add',
       reset

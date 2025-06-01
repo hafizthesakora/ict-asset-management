@@ -33,10 +33,10 @@ export default function TransferStockForm({ items, warehouses, people }) {
 
   async function onSubmit(data) {
     setLoading(true);
-    const baseUrl = 'http://localhost:3000';
+    // const baseUrl = 'http://localhost:3000';
     makePostRequest(
       setLoading,
-      `${baseUrl}/api/tradjustments/transfer`,
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/tradjustments/transfer`,
       data,
       'Adjustment Transfer',
       reset

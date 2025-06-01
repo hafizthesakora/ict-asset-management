@@ -38,10 +38,10 @@ export default function CreatePurchaseForm({
     console.log(data);
     if (isUpdate) {
       setLoading(true);
-      const baseUrl = 'http://localhost:3000';
+      // const baseUrl = 'http://localhost:3000';
       makePutRequest(
         setLoading,
-        `${baseUrl}/api/purchases/${initialData.id}`,
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/purchases/${initialData.id}`,
         data,
         'Purchase',
         redirect,
@@ -49,10 +49,10 @@ export default function CreatePurchaseForm({
       );
     } else {
       setLoading(true);
-      const baseUrl = 'http://localhost:3000';
+      // const baseUrl = 'http://localhost:3000';
       makePostRequest(
         setLoading,
-        `${baseUrl}/api/purchases`,
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/purchases`,
         data,
         'Purchase',
         reset

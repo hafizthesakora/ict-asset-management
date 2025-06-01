@@ -23,10 +23,10 @@ export default function TransferInventoryForm({ items, warehouses, people }) {
 
   async function onSubmit(data) {
     setLoading(true);
-    const baseUrl = 'http://localhost:3000';
+    // const baseUrl = 'http://localhost:3000';
     makePostRequest(
       setLoading,
-      `${baseUrl}/api/adjustments/transfer`,
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/adjustments/transfer`,
       data,
       'Adjustment Transfer',
       reset

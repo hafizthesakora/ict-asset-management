@@ -76,7 +76,7 @@ export default function CreateItemForm({
       setLoading(true);
       makePutRequest(
         setLoading,
-        `http://localhost:3000/api/items/${initialData.id}`,
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/items/${initialData.id}`,
         data,
         'Item',
         redirect,
@@ -86,7 +86,7 @@ export default function CreateItemForm({
       setLoading(true);
       makePostRequest(
         setLoading,
-        'http://localhost:3000/api/items',
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/items`,
         data,
         'Item',
         reset
