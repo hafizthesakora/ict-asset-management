@@ -218,8 +218,14 @@ export default function DataTable({ data = [], columns = [], resourceTitle }) {
           style={{ maxWidth: '100%', width: '100%' }}
         >
           <table
-            className="table-auto"
-            style={{ minWidth: `${columns.length * 160 + 144}px` }}
+            className="w-full"
+            style={{
+              minWidth: `${Math.max(columns.length * 180 + 144, 800)}px`,
+              width:
+                columns.length <= 4
+                  ? '100%'
+                  : `${columns.length * 180 + 144}px`,
+            }}
           >
             <thead>
               <tr className="bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-700 dark:to-gray-600">
@@ -227,8 +233,14 @@ export default function DataTable({ data = [], columns = [], resourceTitle }) {
                   <th
                     key={i}
                     className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 
-                             uppercase tracking-wider border-b border-gray-200 dark:border-gray-600
-                             whitespace-nowrap w-40 min-w-[160px]"
+                             uppercase tracking-wider border-b border-gray-200 dark:border-gray-600 whitespace-nowrap"
+                    style={{
+                      width:
+                        columns.length <= 4
+                          ? `${100 / (columns.length + 1)}%`
+                          : '180px',
+                      minWidth: '180px',
+                    }}
                   >
                     {col
                       .replace(/([A-Z])/g, ' $1')
@@ -237,8 +249,14 @@ export default function DataTable({ data = [], columns = [], resourceTitle }) {
                 ))}
                 <th
                   className="px-6 py-4 text-right text-xs font-semibold text-gray-700 dark:text-gray-300 
-                             uppercase tracking-wider border-b border-gray-200 dark:border-gray-600
-                             whitespace-nowrap w-36 min-w-[144px]"
+                             uppercase tracking-wider border-b border-gray-200 dark:border-gray-600 whitespace-nowrap"
+                  style={{
+                    width:
+                      columns.length <= 4
+                        ? `${100 / (columns.length + 1)}%`
+                        : '144px',
+                    minWidth: '144px',
+                  }}
                 >
                   Actions
                 </th>
@@ -257,7 +275,14 @@ export default function DataTable({ data = [], columns = [], resourceTitle }) {
                       return (
                         <td
                           key={j}
-                          className="px-6 py-4 whitespace-nowrap w-40 min-w-[160px]"
+                          className="px-6 py-4 whitespace-nowrap"
+                          style={{
+                            width:
+                              columns.length <= 4
+                                ? `${100 / (columns.length + 1)}%`
+                                : '180px',
+                            minWidth: '180px',
+                          }}
                         >
                           <span className="text-sm text-gray-900 dark:text-gray-100 font-medium">
                             {new Date(cellValue).toLocaleDateString()}
@@ -266,7 +291,17 @@ export default function DataTable({ data = [], columns = [], resourceTitle }) {
                       );
                     }
                     return (
-                      <td key={j} className="px-6 py-4 w-40 min-w-[160px]">
+                      <td
+                        key={j}
+                        className="px-6 py-4"
+                        style={{
+                          width:
+                            columns.length <= 4
+                              ? `${100 / (columns.length + 1)}%`
+                              : '180px',
+                          minWidth: '180px',
+                        }}
+                      >
                         <div className="text-sm text-gray-900 dark:text-gray-100 font-medium truncate">
                           {cellValue}
                         </div>
@@ -274,7 +309,16 @@ export default function DataTable({ data = [], columns = [], resourceTitle }) {
                     );
                   })}
 
-                  <td className="px-6 py-4 whitespace-nowrap text-right w-36 min-w-[144px]">
+                  <td
+                    className="px-6 py-4 whitespace-nowrap text-right"
+                    style={{
+                      width:
+                        columns.length <= 4
+                          ? `${100 / (columns.length + 1)}%`
+                          : '144px',
+                      minWidth: '144px',
+                    }}
+                  >
                     <div className="flex items-center justify-end space-x-3">
                       {!resourceTitle.includes('adjustments/') && (
                         <Link
