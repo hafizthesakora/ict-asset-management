@@ -113,13 +113,13 @@ export default function Sidebar({ showSidebar, setShowSidebar }) {
         <nav className="flex-1 overflow-y-auto px-3 py-6 scrollbar-thin scrollbar-track-slate-800 scrollbar-thumb-slate-600">
           <div className="space-y-2">
             {/* Home Link */}
-            <Link
+            <a
               className="group flex items-center space-x-3 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 px-3 py-2.5 text-white shadow-lg shadow-blue-600/25 transition-all duration-200 hover:from-blue-500 hover:to-blue-600 hover:shadow-blue-500/30"
               href="/dashboard/home/overview"
             >
               <Home className="h-4 w-4" />
               <span className="font-medium">Home</span>
-            </Link>
+            </a>
 
             {/* Inventory Dropdown */}
             <SidebarDropdownLink
