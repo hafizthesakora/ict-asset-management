@@ -233,6 +233,12 @@ export default function InventoryAnalyticsDashboard() {
     '#FF8042',
     '#8884d8',
     '#82ca9d',
+    '#FF6B9D',
+    '#C23B8C',
+    '#4ECDC4',
+    '#45B7D1',
+    '#FFA07A',
+    '#98D8C8',
   ];
 
   if (loading) {
@@ -318,7 +324,7 @@ export default function InventoryAnalyticsDashboard() {
         <div className="bg-white p-4 rounded-lg shadow">
           <h2 className="text-xl font-semibold mb-4">Inventory by Category</h2>
           {analytics.categoryDistribution.length > 0 ? (
-            <div className="h-64">
+            <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -326,12 +332,13 @@ export default function InventoryAnalyticsDashboard() {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    outerRadius={80}
+                    innerRadius={60}
+                    outerRadius={100}
                     fill="#8884d8"
                     dataKey="count"
                     nameKey="title"
-                    label={({ title, percent }) =>
-                      `${title}: ${(percent * 100).toFixed(0)}%`
+                    label={({ percent }) =>
+                      percent > 0.05 ? `${(percent * 100).toFixed(0)}%` : ''
                     }
                   >
                     {analytics.categoryDistribution.map((entry, index) => (
@@ -347,12 +354,17 @@ export default function InventoryAnalyticsDashboard() {
                       props.payload.title,
                     ]}
                   />
-                  <Legend />
+                  <Legend
+                    layout="horizontal"
+                    verticalAlign="bottom"
+                    align="center"
+                    wrapperStyle={{ paddingTop: '10px' }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </div>
           ) : (
-            <div className="h-64 flex items-center justify-center text-gray-500">
+            <div className="h-80 flex items-center justify-center text-gray-500">
               No category data available
             </div>
           )}
@@ -508,7 +520,7 @@ export default function InventoryAnalyticsDashboard() {
             Item Assignments by Department
           </h2>
           {analytics.peopleAssignments.length > 0 ? (
-            <div className="h-64">
+            <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -516,12 +528,13 @@ export default function InventoryAnalyticsDashboard() {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    outerRadius={80}
+                    innerRadius={60}
+                    outerRadius={100}
                     fill="#8884d8"
                     dataKey="count"
                     nameKey="department"
-                    label={({ department, percent }) =>
-                      `${department}: ${(percent * 100).toFixed(0)}%`
+                    label={({ percent }) =>
+                      percent > 0.05 ? `${(percent * 100).toFixed(0)}%` : ''
                     }
                   >
                     {analytics.peopleAssignments.map((entry, index) => (
@@ -537,12 +550,17 @@ export default function InventoryAnalyticsDashboard() {
                       props.payload.department,
                     ]}
                   />
-                  <Legend />
+                  <Legend
+                    layout="horizontal"
+                    verticalAlign="bottom"
+                    align="center"
+                    wrapperStyle={{ paddingTop: '10px' }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </div>
           ) : (
-            <div className="h-64 flex items-center justify-center text-gray-500">
+            <div className="h-80 flex items-center justify-center text-gray-500">
               No assignment data available
             </div>
           )}

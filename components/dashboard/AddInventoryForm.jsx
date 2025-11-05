@@ -1,13 +1,15 @@
 'use client';
 import FormHeader from '@/components/dashboard/FormHeader';
 import SelectInput from '@/components/FormInputs/SelectInput';
+import SearchableSelectInput from '@/components/FormInputs/SearchableSelectInput';
 import SubmitButton from '@/components/FormInputs/SubmitButton';
 import TextAreaInput from '@/components/FormInputs/TextAreaInput';
 import TextInput from '@/components/FormInputs/TextInput';
 import { makePostRequest } from '@/lib/apiRequest';
 import { Plus, X } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import toast from 'react-hot-toast';
 
 export default function AddInventoryForm({ items, warehouses, people }) {
   const {
@@ -19,6 +21,12 @@ export default function AddInventoryForm({ items, warehouses, people }) {
   } = useForm();
 
   const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [returnForms, setReturnForms] = useState([
+    { id: 1, categoryId: '', itemId: '' },
+  ]);
+  const [selectedWarehouseId, setSelectedWarehouseId] = useState('');
+  const [selectedPersonId, setSelectedPersonId] = useState('');
 
   // Ensure all props are arrays
   const safeItems = Array.isArray(items) ? items : [];
@@ -30,25 +38,112 @@ export default function AddInventoryForm({ items, warehouses, people }) {
     (item) => item.currentLocationType === 'person' && item.assignedToPersonId
   );
 
-  // Debug: Log item states
-  console.log('Return Form - All items:', safeItems.length);
-  console.log('Return Form - Assigned items (filtered):', assignedItems.length);
-  safeItems.forEach(item => {
-    console.log(`Item ${item.serialNumber}: locationType=${item.currentLocationType}, assignedTo=${item.assignedToPersonId}`);
-  });
+  // Fetch categories
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/categories`);
+        if (response.ok) {
+          const data = await response.json();
+          setCategories(data);
+        }
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    }
+    fetchCategories();
+  }, []);
+
+  // Add new return form
+  const addReturnForm = () => {
+    setReturnForms([
+      ...returnForms,
+      { id: Date.now(), categoryId: '', itemId: '' },
+    ]);
+  };
+
+  // Remove return form
+  const removeReturnForm = (id) => {
+    if (returnForms.length > 1) {
+      setReturnForms(returnForms.filter((form) => form.id !== id));
+    }
+  };
+
+  // Update return form
+  const updateReturnForm = (id, field, value) => {
+    setReturnForms(
+      returnForms.map((form) =>
+        form.id === id ? { ...form, [field]: value } : form
+      )
+    );
+  };
+
+  // Get filtered items for a specific category
+  const getFilteredItems = (categoryId) => {
+    if (!categoryId) return assignedItems;
+    return assignedItems.filter((item) => item.categoryId === categoryId);
+  };
 
   async function onSubmit(data) {
-    // console.log(data);
+    console.log('Form data being submitted:', data);
+
+    // Validate that at least one item is selected
+    const hasSelectedItems = returnForms.some((form) => form.itemId);
+    if (!hasSelectedItems) {
+      toast.error('Please select at least one item');
+      return;
+    }
+
+    if (!selectedPersonId) {
+      toast.error('Please select a person');
+      return;
+    }
+    if (!selectedWarehouseId) {
+      toast.error('Please select a warehouse');
+      return;
+    }
+
     setLoading(true);
-    // const baseUrl = 'http://localhost:3000';
-    makePostRequest(
-      setLoading,
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/adjustments/add`,
-      data,
-      'Adjustment Add',
-      reset
-    );
+
+    try {
+      // Submit each item return with quantity 1
+      const promises = returnForms
+        .filter((form) => form.itemId)
+        .map((form) =>
+          fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/adjustments/add`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              addStockQty: 1,
+              itemId: form.itemId,
+              peopleId: selectedPersonId,
+              receivingWarehouseId: selectedWarehouseId,
+              notes: data.notes,
+              referenceNumber: data.referenceNumber,
+            }),
+          })
+        );
+
+      const results = await Promise.all(promises);
+      const successCount = results.filter((r) => r.ok).length;
+
+      if (successCount > 0) {
+        toast.success(`${successCount} item(s) returned successfully`);
+        setReturnForms([{ id: 1, categoryId: '', itemId: '' }]);
+        reset();
+        // Reload the page to refresh data
+        window.location.reload();
+      } else {
+        toast.error('Failed to return items');
+      }
+    } catch (error) {
+      console.error('Error returning items:', error);
+      toast.error('Failed to return items');
+    } finally {
+      setLoading(false);
+    }
   }
+
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
@@ -71,6 +166,7 @@ export default function AddInventoryForm({ items, warehouses, people }) {
           </p>
         </div>
       )}
+
       <div className="grid gap-4 sm:grid-cols-2 sm:gap-6">
         <TextInput
           label="Reference Number"
@@ -79,39 +175,93 @@ export default function AddInventoryForm({ items, warehouses, people }) {
           errors={errors}
         />
 
-        <TextInput
-          label="Quantity to be returned"
-          name="addStockQty"
-          type="number"
-          register={register}
-          className="w-full"
-          errors={errors}
-          defaultValue={1}
-        />
-        <SelectInput
-          register={register}
-          className="w-full"
-          name="itemId"
-          label="Select the Serial number of the Item to be returned"
-          options={assignedItems}
-        />
-
-        <SelectInput
-          register={register}
-          className="w-full"
+        <SearchableSelectInput
+          label="Select the person returning the Asset"
           name="peopleId"
-          label="Select the person to be returning Asset"
+          value={selectedPersonId}
+          onChange={setSelectedPersonId}
           options={safePeople}
+          displayKey="title"
+          placeholder="Search people..."
         />
 
-        <SelectInput
-          register={register}
-          className="w-full"
+        <SearchableSelectInput
+          label="Select the warehouse to receive the Asset"
           name="receivingWarehouseId"
-          label="Select the warehouse to be receiving the Asset"
+          value={selectedWarehouseId}
+          onChange={setSelectedWarehouseId}
           options={safeWarehouses}
+          displayKey="title"
+          placeholder="Search warehouses..."
         />
+      </div>
 
+      {/* Return Forms */}
+      <div className="mt-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">
+            Items to Return (Qty: 1 each)
+          </h3>
+          <button
+            type="button"
+            onClick={addReturnForm}
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors"
+          >
+            <Plus size={16} />
+            Add Item
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          {returnForms.map((form, index) => {
+            const filteredItems = getFilteredItems(form.categoryId);
+            return (
+              <div
+                key={form.id}
+                className="border border-gray-200 rounded-lg p-4 relative"
+              >
+                {returnForms.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeReturnForm(form.id)}
+                    className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                  >
+                    <X size={20} />
+                  </button>
+                )}
+
+                <div className="grid gap-4 sm:grid-cols-2 sm:gap-6">
+                  <SearchableSelectInput
+                    label="Select Category (Optional Filter)"
+                    name={`category-${form.id}`}
+                    value={form.categoryId}
+                    onChange={(value) =>
+                      updateReturnForm(form.id, 'categoryId', value)
+                    }
+                    options={categories}
+                    displayKey="title"
+                    placeholder="All categories..."
+                  />
+
+                  <SearchableSelectInput
+                    label="Select Item Serial Number"
+                    name={`item-${form.id}`}
+                    value={form.itemId}
+                    onChange={(value) =>
+                      updateReturnForm(form.id, 'itemId', value)
+                    }
+                    options={filteredItems}
+                    displayKey="serialNumber"
+                    placeholder="Search by serial number..."
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="mt-6">
         <TextAreaInput
           label="Return Notes"
           name="notes"
@@ -119,7 +269,8 @@ export default function AddInventoryForm({ items, warehouses, people }) {
           errors={errors}
         />
       </div>
-      <SubmitButton isLoading={loading} title="Returned" />
+
+      <SubmitButton isLoading={loading} title="Return Items" />
     </form>
   );
 }
