@@ -1,17 +1,16 @@
 import DataTable from '@/components/dashboard/DataTable';
-import FixedHeader from '@/components/dashboard/FixedHeader';
-import FormHeader from '@/components/dashboard/FormHeader';
-import { getData } from '@/lib/getData';
 import React from 'react';
 
-export default async function Assigned({ data, columns, resourceTitle }) {
+export default function Assigned({ data, columns, resourceTitle }) {
+  // Ensure data is always an array
+  const safeData = Array.isArray(data) ? data : [];
+
   return (
     <div>
       {/* Table */}
-
       <div className="my-4 p-8">
         <DataTable
-          data={data}
+          data={safeData}
           columns={columns}
           resourceTitle={resourceTitle}
         />

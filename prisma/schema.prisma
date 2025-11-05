@@ -57,12 +57,20 @@ model Warehouse {
 model People {
   id String @id @default(auto()) @map("_id") @db.ObjectId
   title          String
+  email         String?
   topology      String?
   department   String?
   aow String?
   stockQty      Int @default(0)
+  contractEndDate DateTime?
+  status String @default("active")
+  assignedItems Item[]
+  accesses Access[]
+  employeeAccesses EmployeeAccess[]
+  offboardingTasks OffboardingTask[]
   addStockAdjustments AddStockAdjustment[]
   transferStockAdjustments TransferStockAdjustment[]
+  demobDocuments DemobDocument[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -101,8 +109,9 @@ model TransferStockAdjustment {
   referenceNumber     String?
   transferStockQty      Int
   notes   String?
-  givingWarehouseId String 
+  givingWarehouseId String
   receivingWarehouseId String?
+  status String @default("active")
   item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
   itemId String @db.ObjectId
   people People @relation(fields: [peopleId], references: [id], onDelete: Cascade)
@@ -161,6 +170,9 @@ model Item {
   supplierId       String @db.ObjectId
   warehouse         Warehouse     @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
   warehouseId       String @db.ObjectId
+  currentLocationType  String @default("warehouse")
+  assignedToPerson     People?  @relation(fields: [assignedToPersonId], references: [id])
+  assignedToPersonId   String?  @db.ObjectId
   documentNumber  String?
   imageUrl        String?
   callOff        String?
@@ -201,4 +213,113 @@ model User {
   hashedPassword String?
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
+}
+
+model AccessCategory {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  title String
+  description String?
+  accessItems AccessItem[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AccessItem {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  name String
+  description String?
+  category AccessCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categoryId String @db.ObjectId
+  employeeAccesses EmployeeAccess[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model EmployeeAccess {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  accessItem AccessItem @relation(fields: [accessItemId], references: [id], onDelete: Cascade)
+  accessItemId String @db.ObjectId
+  people People @relation(fields: [peopleId], references: [id], onDelete: Cascade)
+  peopleId String @db.ObjectId
+  grantedDate DateTime @default(now())
+  grantedBy String?
+  status String @default("active")
+  revokedDate DateTime?
+  revokedBy String?
+  notes String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Access {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  accessType String
+  systemName String
+  accessLevel String?
+  description String?
+  grantedDate DateTime @default(now())
+  status String @default("active")
+  people People @relation(fields: [peopleId], references: [id], onDelete: Cascade)
+  peopleId String @db.ObjectId
+  offboardingTasks OffboardingTask[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model OffboardingTask {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  taskType String
+  title String
+  description String?
+  status String @default("pending")
+  priority String @default("medium")
+  dueDate DateTime?
+  completedDate DateTime?
+  assignedTo String?
+  notes String?
+  people People @relation(fields: [peopleId], references: [id], onDelete: Cascade)
+  peopleId String @db.ObjectId
+  access Access? @relation(fields: [accessId], references: [id], onDelete: Cascade)
+  accessId String? @db.ObjectId
+  itemId String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model DemobDocument {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  people People @relation(fields: [peopleId], references: [id], onDelete: Cascade)
+  peopleId String @db.ObjectId
+  demobPerformedBy String
+  demobPerformedByEmail String
+  demobDate DateTime @default(now())
+  itemsReturned Json
+  accessesRevoked Json
+  documentUrl String?
+  signedDocumentUrl String?
+  isCompleted Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AuditLog {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  action String
+  entityType String
+  entityId String?
+  entityName String?
+  performedBy String
+  performedByEmail String?
+  details Json?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt(sort: Desc)])
+  @@index([action])
+  @@index([entityType])
+  @@index([entityId])
+  @@index([performedBy])
+  @@index([action, entityType])
+  @@index([createdAt(sort: Desc), action])
 }

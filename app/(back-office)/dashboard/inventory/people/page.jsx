@@ -5,8 +5,14 @@ import { getData } from '@/lib/getData';
 import PeopleClient from './PeopleClient';
 import React from 'react';
 
+// Ensure this page always fetches fresh data
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function People() {
   const people = await getData('people');
-  const columns = ['title', 'topology', 'aow', 'department'];
-  return <PeopleClient initialItems={people} columns={columns} />;
+  // Ensure people is always an array
+  const safePeople = Array.isArray(people) ? people : [];
+  const columns = ['title', 'topology', 'aow', 'department', 'stockQty'];
+  return <PeopleClient initialItems={safePeople} columns={columns} />;
 }

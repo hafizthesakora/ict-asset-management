@@ -3,22 +3,26 @@ import { NextResponse } from 'next/server';
 
 export async function POST(request) {
   try {
-    const { topology, title, department, aow } = await request.json();
+    const { topology, title, email, department, aow, contractEndDate } = await request.json();
 
     const people = await db.people.create({
       data: {
         topology,
         title,
+        email,
         department,
         aow,
+        contractEndDate: contractEndDate ? new Date(contractEndDate) : null,
+        status: 'active',
       },
     });
     console.log(people);
     return NextResponse.json(people);
   } catch (error) {
+    console.error('Error creating people:', error);
     return NextResponse.json(
       {
-        error,
+        error: error.message,
         message: 'Failed to create a people',
       },
       {
@@ -35,11 +39,13 @@ export async function GET(request) {
         createdAt: 'desc',
       },
     });
+    console.log('Fetched people:', people);
     return NextResponse.json(people);
   } catch (error) {
+    console.error('Error fetching people:', error);
     return NextResponse.json(
       {
-        error,
+        error: error.message,
         message: 'Failed to fetch people',
       },
       {

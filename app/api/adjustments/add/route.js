@@ -23,13 +23,34 @@ export async function POST(request) {
     const currentItemQty = ItemToUpdate.quantity;
     const newQty = parseInt(currentItemQty) + parseInt(addStockQty);
 
-    //Modify the Item to the new Qty
+    //Modify the Item to the new Qty and reset location
     const updatedItem = await db.item.update({
       where: {
         id: itemId,
       },
       data: {
         quantity: newQty,
+        currentLocationType: 'warehouse',
+        assignedToPersonId: null,
+      },
+    });
+
+    //Get the person and decrease their stock count
+    const person = await db.people.findUnique({
+      where: {
+        id: peopleId,
+      },
+    });
+
+    const currentPersonStock = person.stockQty;
+    const newPersonStock = Math.max(0, parseInt(currentPersonStock) - parseInt(addStockQty));
+
+    const updatedPerson = await db.people.update({
+      where: {
+        id: peopleId,
+      },
+      data: {
+        stockQty: newPersonStock,
       },
     });
 
@@ -53,6 +74,29 @@ export async function POST(request) {
         stockQty: newStockQty,
       },
     });
+
+    // Find and mark the active transfer adjustment as returned
+    const activeTransfer = await db.transferStockAdjustment.findFirst({
+      where: {
+        itemId,
+        peopleId,
+        status: 'active',
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    if (activeTransfer) {
+      await db.transferStockAdjustment.update({
+        where: {
+          id: activeTransfer.id,
+        },
+        data: {
+          status: 'returned',
+        },
+      });
+    }
 
     const adjustment = await db.addStockAdjustment.create({
       data: {
@@ -87,6 +131,17 @@ export async function GET(request) {
     const adjustments = await db.addStockAdjustment.findMany({
       orderBy: {
         createdAt: 'desc',
+      },
+      include: {
+        item: {
+          include: {
+            category: true,
+            brand: true,
+            unit: true,
+            warehouse: true,
+          },
+        },
+        people: true,
       },
     });
     return NextResponse.json(adjustments);

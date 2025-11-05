@@ -12,9 +12,13 @@
 # next.js
 /.next/
 /out/
+/AUDIT_REFACTORING_SUMMARY.md
+/AUDIT_TRAIL_IMPLEMENTATION.md
+/CODEBASE_REFACTORING_SUMMARY.md
 
 # production
 /build
+/.claude
 
 # misc
 .DS_Store

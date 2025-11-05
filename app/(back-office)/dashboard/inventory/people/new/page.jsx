@@ -96,6 +96,16 @@ export default function NewPeople({ initialData = {}, isUpdate = false }) {
       id: 'takoradi-office',
     },
   ];
+  // Format date for input field (YYYY-MM-DD)
+  const formattedInitialData = initialData?.contractEndDate
+    ? {
+        ...initialData,
+        contractEndDate: new Date(initialData.contractEndDate)
+          .toISOString()
+          .split('T')[0],
+      }
+    : initialData;
+
   const {
     handleSubmit,
     register,
@@ -103,7 +113,7 @@ export default function NewPeople({ initialData = {}, isUpdate = false }) {
     watch,
     reset,
   } = useForm({
-    defaultValues: initialData,
+    defaultValues: formattedInitialData,
   });
 
   const [loading, setLoading] = useState(false);
@@ -115,10 +125,9 @@ export default function NewPeople({ initialData = {}, isUpdate = false }) {
   async function onSubmit(data) {
     if (isUpdate) {
       setLoading(true);
-      const baseUrl = 'http://localhost:3000';
       makePutRequest(
         setLoading,
-        `${baseUrl}/api/people/${initialData.id}`,
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/people/${initialData.id}`,
         data,
         'People',
         redirect,
@@ -126,13 +135,13 @@ export default function NewPeople({ initialData = {}, isUpdate = false }) {
       );
     } else {
       setLoading(true);
-      const baseUrl = 'http://localhost:3000';
       makePostRequest(
         setLoading,
-        `${baseUrl}/api/people`,
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/people`,
         data,
         'People',
-        reset
+        reset,
+        redirect
       );
     }
   }
@@ -164,6 +173,15 @@ export default function NewPeople({ initialData = {}, isUpdate = false }) {
             className="w-full"
           />
 
+          <TextInput
+            label="Email Address"
+            name="email"
+            type="email"
+            register={register}
+            errors={errors}
+            className="w-full"
+          />
+
           <SelectInput
             register={register}
             className="w-full"
@@ -178,6 +196,15 @@ export default function NewPeople({ initialData = {}, isUpdate = false }) {
             name="aow"
             label="Person Area of Work"
             options={selectLocation}
+          />
+
+          <TextInput
+            label="Contract End Date"
+            name="contractEndDate"
+            type="date"
+            register={register}
+            errors={errors}
+            className="w-full"
           />
         </div>
         <SubmitButton

@@ -1,5 +1,7 @@
 import db from '@/lib/db';
 import { NextResponse } from 'next/server';
+import { createAuditLog } from '@/lib/auditLog';
+import { AUDIT_ACTIONS, AUDIT_ENTITIES } from '@/lib/constants/auditConstants';
 
 export async function POST(request) {
   try {
@@ -12,12 +14,40 @@ export async function POST(request) {
       referenceNumber,
     } = await request.json();
 
+    console.log('Transfer request data:', {
+      transferStockQty,
+      itemId,
+      peopleId,
+      givingWarehouseId,
+      notes,
+      referenceNumber,
+    });
+
+    // Validate required fields
+    if (!itemId || !peopleId || !givingWarehouseId || !transferStockQty) {
+      return NextResponse.json(
+        {
+          message: 'Missing required fields',
+        },
+        { status: 400 }
+      );
+    }
+
     // the Giving warehouse
     const givingWarehouse = await db.warehouse.findUnique({
       where: {
         id: givingWarehouseId,
       },
     });
+
+    if (!givingWarehouse) {
+      return NextResponse.json(
+        {
+          message: 'Warehouse not found',
+        },
+        { status: 404 }
+      );
+    }
 
     //Get current stock
     const currentGivingStock = givingWarehouse.stockQty;
@@ -58,6 +88,17 @@ export async function POST(request) {
         },
       });
 
+      // Update Item location to person
+      const updateItem = await db.item.update({
+        where: {
+          id: itemId,
+        },
+        data: {
+          currentLocationType: 'person',
+          assignedToPersonId: peopleId,
+        },
+      });
+
       const adjustment = await db.transferStockAdjustment.create({
         data: {
           transferStockQty: parseInt(transferStockQty),
@@ -66,9 +107,32 @@ export async function POST(request) {
           givingWarehouseId,
           notes,
           referenceNumber,
+          status: 'active',
         },
       });
       console.log(adjustment);
+
+      // Create audit log
+      await createAuditLog({
+        action: AUDIT_ACTIONS.ASSIGN_ITEM,
+        entityType: AUDIT_ENTITIES.ITEM,
+        entityId: itemId,
+        entityName: updateItem.title,
+        performedBy: 'System',
+        performedByEmail: null,
+        details: {
+          itemTitle: updateItem.title,
+          serialNumber: updateItem.serialNumber,
+          quantity: parseInt(transferStockQty),
+          fromWarehouse: givingWarehouse.title,
+          toPerson: receivingPerson.title,
+          toPersonEmail: receivingPerson.email,
+          referenceNumber,
+          notes,
+        },
+        request,
+      });
+
       return NextResponse.json(adjustment);
     } else {
       return NextResponse.json(
@@ -80,9 +144,10 @@ export async function POST(request) {
       );
     }
   } catch (error) {
+    console.error('Error creating transfer adjustment:', error);
     return NextResponse.json(
       {
-        error,
+        error: error.message,
         message: 'Failed to create adjustment',
       },
       {
@@ -97,6 +162,17 @@ export async function GET(request) {
     const adjustments = await db.transferStockAdjustment.findMany({
       orderBy: {
         createdAt: 'desc',
+      },
+      include: {
+        item: {
+          include: {
+            category: true,
+            brand: true,
+            unit: true,
+            warehouse: true,
+          },
+        },
+        people: true,
       },
     });
     return NextResponse.json(adjustments);

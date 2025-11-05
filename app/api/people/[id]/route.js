@@ -7,6 +7,32 @@ export async function GET(request, { params: { id } }) {
       where: {
         id,
       },
+      include: {
+        assignedItems: {
+          include: {
+            category: true,
+            brand: true,
+            unit: true,
+            warehouse: true,
+            supplier: true,
+          },
+        },
+        transferStockAdjustments: {
+          where: {
+            status: 'active',
+          },
+          include: {
+            item: {
+              include: {
+                category: true,
+                brand: true,
+                unit: true,
+                warehouse: true,
+              },
+            },
+          },
+        },
+      },
     });
     return NextResponse.json(people);
   } catch (error) {
@@ -24,7 +50,7 @@ export async function GET(request, { params: { id } }) {
 
 export async function PUT(request, { params: { id } }) {
   try {
-    const { topology, title, department, aow } = await request.json();
+    const { topology, title, email, department, aow, contractEndDate } = await request.json();
     const people = await db.people.update({
       where: {
         id,
@@ -32,8 +58,10 @@ export async function PUT(request, { params: { id } }) {
       data: {
         topology,
         title,
+        email,
         department,
         aow,
+        contractEndDate: contractEndDate ? new Date(contractEndDate) : null,
       },
     });
     return NextResponse.json(people);

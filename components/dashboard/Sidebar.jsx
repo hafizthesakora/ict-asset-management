@@ -11,6 +11,8 @@ import {
   ShoppingBag,
   ShoppingBasket,
   Signal,
+  Shield,
+  UserMinus,
   X,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -141,9 +143,9 @@ export default function Sidebar({ showSidebar, setShowSidebar }) {
 
               <Link
                 className="group flex items-center space-x-3 rounded-lg px-3 py-2.5 text-slate-300 transition-all duration-200 hover:bg-slate-700/50 hover:text-white"
-                href="/dashboard/audit"
+                href="/dashboard/audit-trail"
               >
-                <Signal className="h-4 w-4 transition-colors group-hover:text-green-400" />
+                <Shield className="h-4 w-4 transition-colors group-hover:text-green-400" />
                 <span className="font-medium">Audit Trail</span>
               </Link>
 
@@ -153,6 +155,22 @@ export default function Sidebar({ showSidebar, setShowSidebar }) {
               >
                 <Files className="h-4 w-4 transition-colors group-hover:text-purple-400" />
                 <span className="font-medium">Documents</span>
+              </Link>
+
+              <Link
+                className="group flex items-center space-x-3 rounded-lg px-3 py-2.5 text-slate-300 transition-all duration-200 hover:bg-slate-700/50 hover:text-white"
+                href="/dashboard/ict-services"
+              >
+                <Shield className="h-4 w-4 transition-colors group-hover:text-cyan-400" />
+                <span className="font-medium">ICT Services</span>
+              </Link>
+
+              <Link
+                className="group flex items-center space-x-3 rounded-lg px-3 py-2.5 text-slate-300 transition-all duration-200 hover:bg-slate-700/50 hover:text-white"
+                href="/dashboard/demob-user"
+              >
+                <UserMinus className="h-4 w-4 transition-colors group-hover:text-red-400" />
+                <span className="font-medium">Demob User</span>
               </Link>
             </div>
           </div>
