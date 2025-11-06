@@ -46,6 +46,9 @@ export async function POST(request) {
         notes: itemData?.notes,
         buyingPrice: parseFloat(itemData?.buyingPrice),
         model: itemData?.model,
+        // Set initial location to warehouse
+        currentLocationType: 'warehouse',
+        assignedToPersonId: null,
       },
     });
     return NextResponse.json(item);

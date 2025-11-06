@@ -33,10 +33,38 @@ export default function AddInventoryForm({ items, warehouses, people }) {
   const safeWarehouses = Array.isArray(warehouses) ? warehouses : [];
   const safePeople = Array.isArray(people) ? people : [];
 
-  // Filter items to show only those currently assigned to people
-  const assignedItems = safeItems.filter(
-    (item) => item.currentLocationType === 'person' && item.assignedToPersonId
-  );
+  // Filter items based on selected person
+  const assignedItems = safeItems.filter((item) => {
+    // Item must be assigned to a person
+    if (item.currentLocationType !== 'person' || !item.assignedToPersonId) {
+      return false;
+    }
+
+    // If a person is selected, only show items assigned to that person
+    if (selectedPersonId) {
+      return item.assignedToPersonId === selectedPersonId;
+    }
+
+    // If no person selected, show all assigned items
+    return true;
+  });
+
+  // Get unique categories from items assigned to the selected person
+  const getAvailableCategories = () => {
+    if (!selectedPersonId) {
+      // If no person selected, show all categories that have assigned items
+      const categoryIds = new Set(assignedItems.map(item => item.categoryId));
+      return categories.filter(cat => categoryIds.has(cat.id));
+    }
+
+    // If person is selected, only show categories of items assigned to that person
+    const personItems = safeItems.filter(
+      item => item.assignedToPersonId === selectedPersonId &&
+              item.currentLocationType === 'person'
+    );
+    const categoryIds = new Set(personItems.map(item => item.categoryId));
+    return categories.filter(cat => categoryIds.has(cat.id));
+  };
 
   // Fetch categories
   useEffect(() => {
@@ -53,6 +81,11 @@ export default function AddInventoryForm({ items, warehouses, people }) {
     }
     fetchCategories();
   }, []);
+
+  // Reset item selections when person changes
+  useEffect(() => {
+    setReturnForms([{ id: 1, categoryId: '', itemId: '' }]);
+  }, [selectedPersonId]);
 
   // Add new return form
   const addReturnForm = () => {
@@ -119,7 +152,7 @@ export default function AddInventoryForm({ items, warehouses, people }) {
               peopleId: selectedPersonId,
               receivingWarehouseId: selectedWarehouseId,
               notes: data.notes,
-              referenceNumber: data.referenceNumber,
+              referenceNumber: '',
             }),
           })
         );
@@ -168,13 +201,6 @@ export default function AddInventoryForm({ items, warehouses, people }) {
       )}
 
       <div className="grid gap-4 sm:grid-cols-2 sm:gap-6">
-        <TextInput
-          label="Reference Number"
-          name="referenceNumber"
-          register={register}
-          errors={errors}
-        />
-
         <SearchableSelectInput
           label="Select the person returning the Asset"
           name="peopleId"
@@ -213,8 +239,23 @@ export default function AddInventoryForm({ items, warehouses, people }) {
         </div>
 
         <div className="space-y-4">
+          {!selectedPersonId && (
+            <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-yellow-800 text-sm">
+                Please select a person first to see items assigned to them.
+              </p>
+            </div>
+          )}
+          {selectedPersonId && assignedItems.length === 0 && (
+            <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-yellow-800 text-sm">
+                This person has no items assigned to them.
+              </p>
+            </div>
+          )}
           {returnForms.map((form, index) => {
             const filteredItems = getFilteredItems(form.categoryId);
+            const availableCategories = getAvailableCategories();
             return (
               <div
                 key={form.id}
@@ -238,9 +279,13 @@ export default function AddInventoryForm({ items, warehouses, people }) {
                     onChange={(value) =>
                       updateReturnForm(form.id, 'categoryId', value)
                     }
-                    options={categories}
+                    options={availableCategories}
                     displayKey="title"
-                    placeholder="All categories..."
+                    placeholder={
+                      selectedPersonId
+                        ? 'All categories for this person...'
+                        : 'Select person first...'
+                    }
                   />
 
                   <SearchableSelectInput
@@ -252,7 +297,11 @@ export default function AddInventoryForm({ items, warehouses, people }) {
                     }
                     options={filteredItems}
                     displayKey="serialNumber"
-                    placeholder="Search by serial number..."
+                    placeholder={
+                      selectedPersonId
+                        ? 'Search by serial number...'
+                        : 'Select person first...'
+                    }
                   />
                 </div>
               </div>

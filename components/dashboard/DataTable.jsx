@@ -26,7 +26,13 @@ function prepareExcelData(data, columns) {
       if (col === 'createdAt' || col === 'updatedAt') {
         value = new Date(value).toLocaleDateString();
       }
-      row[col] = value;
+      // Format status column for Excel export
+      if (col === 'currentLocationType') {
+        value = value === 'warehouse' ? 'In Store' : value === 'person' ? 'Assigned' : 'Unknown';
+      }
+      // Use "Status" as header name for currentLocationType
+      const columnName = col === 'currentLocationType' ? 'Status' : col;
+      row[columnName] = value;
     });
     return row;
   });
@@ -242,9 +248,11 @@ export default function DataTable({ data = [], columns = [], resourceTitle }) {
                       minWidth: '180px',
                     }}
                   >
-                    {col
-                      .replace(/([A-Z])/g, ' $1')
-                      .replace(/^./, (str) => str.toUpperCase())}
+                    {col === 'currentLocationType'
+                      ? 'Status'
+                      : col
+                          .replace(/([A-Z])/g, ' $1')
+                          .replace(/^./, (str) => str.toUpperCase())}
                   </th>
                 ))}
                 <th
@@ -271,6 +279,8 @@ export default function DataTable({ data = [], columns = [], resourceTitle }) {
                 >
                   {columns.map((col, j) => {
                     const cellValue = get(item, col);
+
+                    // Render date columns
                     if (col === 'createdAt' || col === 'updatedAt') {
                       return (
                         <td
@@ -290,6 +300,51 @@ export default function DataTable({ data = [], columns = [], resourceTitle }) {
                         </td>
                       );
                     }
+
+                    // Render status/location badge
+                    if (col === 'currentLocationType') {
+                      const isWarehouse = cellValue === 'warehouse';
+                      const isPerson = cellValue === 'person';
+
+                      return (
+                        <td
+                          key={j}
+                          className="px-6 py-4 whitespace-nowrap"
+                          style={{
+                            width:
+                              columns.length <= 4
+                                ? `${100 / (columns.length + 1)}%`
+                                : '180px',
+                            minWidth: '180px',
+                          }}
+                        >
+                          {isWarehouse && (
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border border-green-200 dark:border-green-800">
+                              <svg className="w-3 h-3 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/>
+                                <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd"/>
+                              </svg>
+                              In Store
+                            </span>
+                          )}
+                          {isPerson && (
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
+                              <svg className="w-3 h-3 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"/>
+                              </svg>
+                              Assigned
+                            </span>
+                          )}
+                          {!isWarehouse && !isPerson && (
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400 border border-gray-200 dark:border-gray-600">
+                              Unknown
+                            </span>
+                          )}
+                        </td>
+                      );
+                    }
+
+                    // Render normal columns
                     return (
                       <td
                         key={j}

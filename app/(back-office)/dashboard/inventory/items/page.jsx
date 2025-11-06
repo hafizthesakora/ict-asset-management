@@ -5,6 +5,7 @@ import ItemsClient from './ItemsClient';
 export default async function ItemsPage() {
   const items = await getData('items');
   const columns = [
+    'currentLocationType',
     'title',
     'unit.title',
     'category.title',

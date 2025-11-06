@@ -38,6 +38,45 @@ export default function TransferInventoryForm({ items, warehouses, people }) {
     (item) => item.currentLocationType === 'warehouse' || !item.currentLocationType
   );
 
+  // Debug: Log item states
+  useEffect(() => {
+    console.log('=== ASSIGNMENT FORM DEBUG ===');
+    console.log('Total items:', safeItems.length);
+    console.log('Available items:', availableItems.length);
+
+    // Count by location type
+    const locationCounts = {
+      warehouse: 0,
+      person: 0,
+      null: 0,
+      undefined: 0,
+      other: 0
+    };
+
+    safeItems.forEach(item => {
+      if (item.currentLocationType === 'warehouse') {
+        locationCounts.warehouse++;
+      } else if (item.currentLocationType === 'person') {
+        locationCounts.person++;
+      } else if (item.currentLocationType === null) {
+        locationCounts.null++;
+      } else if (item.currentLocationType === undefined) {
+        locationCounts.undefined++;
+      } else {
+        locationCounts.other++;
+      }
+    });
+
+    console.log('Location type breakdown:', locationCounts);
+
+    // Sample some items to see their actual state
+    console.log('First 5 items sample:', safeItems.slice(0, 5).map(item => ({
+      serialNumber: item.serialNumber,
+      currentLocationType: item.currentLocationType,
+      assignedToPersonId: item.assignedToPersonId
+    })));
+  }, [safeItems]);
+
   // Fetch categories
   useEffect(() => {
     async function fetchCategories() {
@@ -82,6 +121,21 @@ export default function TransferInventoryForm({ items, warehouses, people }) {
   const getFilteredItems = (categoryId) => {
     if (!categoryId) return availableItems;
     return availableItems.filter((item) => item.categoryId === categoryId);
+  };
+
+  // Get stats for a category (total vs available)
+  const getCategoryStats = (categoryId) => {
+    if (!categoryId) return null;
+
+    const totalInCategory = safeItems.filter(item => item.categoryId === categoryId).length;
+    const availableInCategory = availableItems.filter(item => item.categoryId === categoryId).length;
+    const assignedInCategory = totalInCategory - availableInCategory;
+
+    return {
+      total: totalInCategory,
+      available: availableInCategory,
+      assigned: assignedInCategory
+    };
   };
 
   async function onSubmit(data) {
@@ -207,6 +261,7 @@ export default function TransferInventoryForm({ items, warehouses, people }) {
         <div className="space-y-4">
           {assignmentForms.map((form, index) => {
             const filteredItems = getFilteredItems(form.categoryId);
+            const categoryStats = getCategoryStats(form.categoryId);
             return (
               <div
                 key={form.id}
@@ -220,6 +275,22 @@ export default function TransferInventoryForm({ items, warehouses, people }) {
                   >
                     <X size={20} />
                   </button>
+                )}
+
+                {/* Category Stats Info */}
+                {categoryStats && (
+                  <div className="mb-3 p-2 bg-blue-50 border border-blue-200 rounded text-sm">
+                    <span className="text-blue-800">
+                      <strong>{categoryStats.available}</strong> available out of{' '}
+                      <strong>{categoryStats.total}</strong> total items
+                      {categoryStats.assigned > 0 && (
+                        <span className="text-blue-600">
+                          {' '}
+                          ({categoryStats.assigned} currently assigned)
+                        </span>
+                      )}
+                    </span>
+                  </div>
                 )}
 
                 <div className="grid gap-4 sm:grid-cols-2 sm:gap-6">
